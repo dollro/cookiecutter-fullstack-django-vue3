@@ -1,0 +1,127 @@
+## this docker compose file for deployment needs these environment variables set:
+##
+## DOCKER_REGISTRY       # e.g. registry.dolltons.com/{{cookiecutter.project_slug}}   # the docker registry (project used)
+## DOCKER_REGISTRY_USER  # e.g. {{cookiecutter.project_slug}}                         # the login user for the docker pull
+## DOCKER_REGISTRY_PASS  # e.g. {{cookiecutter.project_slug}}                         # the login password for the docker pull
+## DEPLOYMENT_TARGET     # e.g. asparuha
+
+volumes:
+  production_postgres_data: {}
+  production_postgres_data_backups: {}
+  production_traefik: {}
+  production_portainer_data: {}
+
+services:
+  # auto-update images via watchtower
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - REPO_USER=${DOCKER_REGISTRY_USER}
+      - REPO_PASS=${DOCKER_REGISTRY_PASS}
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+      - WATCHTOWER_POLL_INTERVAL=7200
+      - WATCHTOWER_SCOPE={{cookiecutter.project_slug}}_scope
+    env_file:
+      - ./.envs/.production/.django
+      - ./.envs/.production/.django.${DEPLOYMENT_TARGET}
+    depends_on:
+      - django
+    labels:
+      - com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope
+
+
+  django: &django
+    image: ${DOCKER_REGISTRY}/{{cookiecutter.project_slug}}-django:latest
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ./.envs/.production/.django
+      - ./.envs/.production/.django.${DEPLOYMENT_TARGET}
+    devices:
+      - /dev/snd
+    command: /start
+    expose:
+      - "5000"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.django.service=django
+      - traefik.http.routers.django.entrypoints=web
+      - traefik.http.routers.django.rule=PathPrefix(`/`)
+      - traefik.docker.network=default
+      - traefik.http.services.django.loadbalancer.server.port=5000
+      - traefik.http.middlewares.csrf.headers.hostsproxyheaders=X-CSRFToken
+      - com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope
+
+  postgres:
+    image: ${DOCKER_REGISTRY}/{{cookiecutter.project_slug}}-postgres:latest
+    restart: always
+    volumes:
+      - production_postgres_data:/var/lib/postgresql/data:Z
+      - production_postgres_data_backups:/backups:z
+    env_file:
+      - ./.envs/.production/.django
+      - ./.envs/.production/.django.${DEPLOYMENT_TARGET}
+    labels:
+      - com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope
+
+  traefik:
+    image: ${DOCKER_REGISTRY}/{{cookiecutter.project_slug}}-traefik:latest
+    restart: always
+    depends_on:
+      - django
+    volumes:
+      - production_traefik:/etc/traefik/acme:z
+    ports:
+      - "0.0.0.0:80:80"
+      #- "0.0.0.0:443:443"
+      #- "0.0.0.0:5555:5555"
+    labels:
+      - traefik.docker.network=default
+      - traefik.http.routers.traefik.service=api@internal
+      - com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope
+
+  redis:
+    image: redis:5.0
+    restart: always
+    # labels:
+    #   - "com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope"
+
+  celeryworker:
+    <<: *django
+    command: /start-celeryworker
+    restart: always
+
+
+  celerybeat:
+    <<: *django
+    command: /start-celerybeat
+    restart: always
+
+
+  # flower:
+  #   <<: *django
+  #   command: /start-flower
+  #   restart: always
+
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+      - production_portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    labels:
+      - com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope
+
+
+networks:
+  default:
+    name: {{cookiecutter.project_slug}}_network
+    driver: bridge

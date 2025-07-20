@@ -1,0 +1,31 @@
+exclude: 'docs|node_modules|migrations|.git|.tox'
+default_stages: [pre-commit]
+fail_fast: true
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+
+  - repo: https://github.com/psf/black
+    rev: 23.1.0
+    hooks:
+      - id: black
+        language: python
+        types: [python]
+
+  # - repo: local
+  #   hooks:
+  #   - id: git-secret
+  #     name: Check
+  #     description: This hook ensures that all translation files share the same set of keys and generates a CSV if there are no issues
+  #     language: script
+  #     entry: ...
+
+ci:
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

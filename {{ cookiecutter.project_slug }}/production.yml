@@ -1,0 +1,83 @@
+volumes:
+  production_postgres_data: {}
+  production_postgres_data_backups: {}
+  production_traefik: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/production/django/Dockerfile
+    image: {{cookiecutter.project_slug}}_production_django
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ./.envs/.production/.django
+    devices:
+      - /dev/snd
+    command: /start
+    expose:
+      - "5000"
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.django.service=django
+      - traefik.http.routers.django.entrypoints=web
+      - traefik.http.routers.django.rule=PathPrefix(`/`)
+      - traefik.docker.network=default
+      - traefik.http.services.django.loadbalancer.server.port=5000
+      - traefik.http.middlewares.csrf.headers.hostsproxyheaders=X-CSRFToken
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: {{cookiecutter.project_slug}}_production_postgres
+    volumes:
+      - production_postgres_data:/var/lib/postgresql/data:Z
+      - production_postgres_data_backups:/backups:z
+    env_file:
+      - ./.envs/.production/.django
+
+  traefik:
+    build:
+      context: .
+      dockerfile: ./compose/production/traefik/Dockerfile
+    image: {{cookiecutter.project_slug}}_production_traefik
+    restart: always
+    depends_on:
+      - django
+    volumes:
+      - production_traefik:/etc/traefik/acme:z
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "0.0.0.0:80:80"
+    labels:
+      - traefik.docker.network=default
+      - traefik.http.routers.traefik.service=api@internal
+
+  redis:
+    image: redis:5.0
+
+  celeryworker:
+    <<: *django
+    image: {{cookiecutter.project_slug}}_production_celeryworker
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: {{cookiecutter.project_slug}}_production_celerybeat
+    command: /start-celerybeat
+
+  # flower:
+  #   <<: *django
+  #   image: {{cookiecutter.project_slug}}_production_flower
+  #   command: /start-flower
+
+
+
+
+networks:
+  default:
+    name: {{cookiecutter.project_slug}}_network
+    driver: bridge

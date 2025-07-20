@@ -1,0 +1,80 @@
+# General
+# ------------------------------------------------------------------------------
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+
+
+# Logging and Debugging
+#--------------------------------------------------------------------------------
+#DJANGO_LOGLEVEL=DEBUG  # defaults to WARNING, INFO
+#DJANGO_DEBUG=TRUE
+#DJANGO_LOGFILE=/app/backend_django.log
+
+# ------------------------------------------------------------------------------
+# DJANGO_READ_DOT_ENV_FILE=True
+DJANGO_SETTINGS_MODULE=config.settings.production
+DJANGO_SECRET_KEY=CNjg29bMasvIzEm3ATEHcYWJNpoT0d1WowpACZNHcfiq4xJZx6An7a1HVEmoXfCH
+DJANGO_ADMIN_URL=Gdwk8xXU6EBVOqHSOLLk86Ayc8V29TSp/
+DJANGO_ALLOWED_HOSTS=*
+
+# Security
+# ------------------------------------------------------------------------------
+# TIP: better off using DNS, however, redirect is OK too
+DJANGO_SECURE_SSL_REDIRECT=False
+DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1,http://dummydomain.com,https://dummydomain.com
+# Email
+# ------------------------------------------------------------------------------
+DJANGO_SERVER_EMAIL=henry.ford@dummydomain.com
+
+
+# fill with your own settings !
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_HOST_USER=
+EMAIL_USE_TLS=
+EMAIL_USE_SSL=True
+EMAIL_TIMEOUT=30
+
+#MAILGUN_API_KEY=
+#MAILGUN_DOMAIN=
+
+
+# django-allauth
+# ------------------------------------------------------------------------------
+DJANGO_ACCOUNT_ALLOW_REGISTRATION=True
+
+# Gunicorn
+# ------------------------------------------------------------------------------
+WEB_CONCURRENCY=4
+
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL=redis://redis:6379/0
+
+
+# Flower
+CELERY_FLOWER_USER=MCkbCmcPupfmmeWoRIcWmzcRyvlWWKFZ
+CELERY_FLOWER_PASSWORD=tXMzAU8KPYUnZnm3drj3HEDotzAqLtVyI5E415yzcE9Uq3rnAIztyZJaqeH5UEv7
+
+#Vue FrontEnd
+VITE_APP_STATIC_ROOT=/static
+VITE_APP_API_ROOT=/api/v1
+
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB={{cookiecutter.project_slug}}
+POSTGRES_USER={{cookiecutter.project_slug}}
+POSTGRES_PASSWORD=tgdeXwur04BERVcqoBkRzfiAPYQGn1Ph9Z9llsbW1sEuYmG9XRksgZ6uUYqVf7ly
+
+# Environment variables for deploy.yml
+# ------------------------------------------------------------------------------
+DOCKER_REGISTRY=registry.dolltons.com/{{cookiecutter.project_slug}}
+DOCKER_REGISTRY_USER=
+DOCKER_REGISTRY_PASS=
+
+##################################################################################
+##################################################################################
+
+# generic

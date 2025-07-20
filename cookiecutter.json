@@ -1,0 +1,11 @@
+{
+  "project_name": "WebApp",
+  "project_slug": "{{ cookiecutter.project_name.lower()|replace(' ', '_')|replace('-', '_')|replace('.', '_')|trim() }}",
+  "description": "My awesome fullstack project with django and Vue/vite, TailwindCSS and Gitlab CI",
+  "author_name": "Henry Ford",
+  "domain_name": "dummydomain.com",
+  "email": "{{ cookiecutter.author_name.lower()|replace(' ', '.') }}@{{ cookiecutter.domain_name }}",
+  "docker_registry": "registry.hub.docker.com:5000/{{ cookiecutter.project_name.lower()|replace(' ', '_')|replace('-', '_')|replace('.', '_')|trim() }}",
+  "version": "0.1.0",
+  "_copy_without_render": ["*.html", "*.sh", "*.vue", "*.html", "*/urls.py", "*.js", "*.jpg"]
+}

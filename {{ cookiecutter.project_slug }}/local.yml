@@ -1,0 +1,114 @@
+volumes:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: {{cookiecutter.project_slug}}_local_django
+    #container_name: django
+    depends_on:
+      - postgres
+      - mailhog
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+    ports:
+      - "8000:5000"
+    devices:
+      - /dev/snd
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: {{cookiecutter.project_slug}}_production_postgres
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data:Z
+      - local_postgres_data_backups:/backups:z
+    env_file:
+      - ./.envs/.local/.django
+
+
+ #  docs:
+ #    image: {{cookiecutter.project_slug}}_local_docs
+ #    #container_name: docs
+ #    build:
+ #      context: .
+ #      dockerfile: ./compose/local/docs/Dockerfile
+ #    env_file:
+ #      - ./.envs/.local/.django
+ #    volumes:
+ #      - ./docs:/docs:z
+ #      - ./config:/app/config:z
+ #      - ./backend_django:/app/backend_django:z
+ #    ports:
+ #      - "7000:7000"
+ #
+  mailhog:
+    image: mailhog/mailhog:v1.0.0
+    ports:
+      - "8025:8025"
+
+  redis:
+    image: redis:7.4
+
+  celeryworker:
+    <<: *django
+    image: {{cookiecutter.project_slug}}_local_celeryworker
+    depends_on:
+      - redis
+      - postgres
+      - mailhog
+    ports: []
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: {{cookiecutter.project_slug}}_local_celerybeat
+    depends_on:
+      - redis
+      - postgres
+      - mailhog
+    ports: []
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: {{cookiecutter.project_slug}}_local_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower
+
+  node-vue:
+    build:
+      context: .
+      dockerfile: ./compose/local/node-vue/Dockerfile
+    image: node-vue
+    volumes:
+      - .:/app:z
+      # http://jdlm.info/articles/2016/03/06/lessons-building-node-app-docker.html
+      - /app/frontend_vue/node_modules
+    command: /start-vue
+    #command: pnpm --dir ./frontend_vue run serve --host=0.0.0.0 --port=8080 --public=0.0.0.0:8080
+    #command: pnpm --dir ./frontend_vue run build -- --mode production
+    ports:
+      - "3000:3000"
+      # Expose browsersync UI: https://www.browsersync.io/docs/options/#option-ui
+    environment:
+      #- PROXY_TARGET=django:8000
+      - NODE_ENV=development
+
+
+
+networks:
+  default:
+    name: {{cookiecutter.project_slug}}_network
+    driver: bridge
+  # proxy:
+  #   name: {{cookiecutter.project_slug}}_proxy
+  #   driver: bridge

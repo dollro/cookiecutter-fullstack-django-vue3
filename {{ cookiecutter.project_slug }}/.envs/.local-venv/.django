@@ -1,0 +1,42 @@
+#!/bin/bash
+# General
+# ------------------------------------------------------------------------------
+USE_DOCKER=no
+IPYTHONDIR=/app/.ipython
+DJANGO_READ_DOT_ENV_FILE=False
+DJANGO_LOGFILE=log/{{cookiecutter.project_slug}}.log
+DJANGO_LOGLEVEL=INFO
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,.localhost
+DJANGO_VITE_DEV_MODE=True
+
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL=redis://localhost:6379/0
+
+# Celery
+# ------------------------------------------------------------------------------
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_TASK_ALWAYS_EAGER=True
+CELERY_VENV_MODE=local
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+# Flower
+# ------------------------------------------------------------------------------
+CELERY_FLOWER_USER=MCkbCmcPupfmmeWoRIcWmzcRyvlWWKFZ
+CELERY_FLOWER_PASSWORD=4h1RBSLCHZrwrncWwVbgrRXadHvGIMF9dGIXfMD0r2796mCVZyUlSaZP6DFPDt8o
+
+# Postgres
+# ------------------------------------------------------------------------------
+DATABASE_URL=postgres://{{cookiecutter.project_slug}}:{{cookiecutter.project_slug}}@127.0.0.1:5432/{{cookiecutter.project_slug}}
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB={{cookiecutter.project_slug}}
+POSTGRES_USER={{cookiecutter.project_slug}}
+POSTGRES_PASSWORD={{cookiecutter.project_slug}}
+
+#App-specific
+# ------------------------------------------------------------------------------
+EMAIL_HOST=localhost
+
+# {{cookiecutter.project_slug}}

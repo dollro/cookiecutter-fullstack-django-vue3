@@ -1,0 +1,13 @@
+# tls:
+#   stores:
+#     default:
+#       defaultCertificate:
+#         # Change these file names to match what you have
+#         certFile: /etc/traefik/certs/cert.pem
+#         keyFile: /etc/traefik/certs/key.pem
+#   certificates:
+#       # Change these file names to match what you have
+#     - certFile: /etc/traefik/certs/cert.pem
+#       keyFile: /etc/traefik/certs/key.pem
+#       stores:
+#         - default

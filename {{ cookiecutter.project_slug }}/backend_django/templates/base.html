@@ -1,0 +1,46 @@
+
+{% load django_vite %}
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>{% block title %} TITLE {% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% vite_hmr_client %}
+    
+
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
+    <!-- Google fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic" rel="stylesheet" type="text/css" />
+
+    <!-- Here goes page-specific django based CSS -->
+    {% block css %}
+   
+    {% endblock css %}
+
+  </head>
+  <body>
+    <!-- Simple navigation will be added later if needed -->
+
+    <!-- Start content -->
+    {% block content %}
+    {% endblock content %}
+
+    <!-- main vue injection into tag 'vue-main' goes here -->
+    {% block vue_main %}
+    <div id="vue-main"></div>
+    {% endblock vue_main %}
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    {% vite_asset 'main.js' %}
+    <!-- Finally, below go the django-template specific script files, if any -->
+    {% block javascript %}
+    {% endblock javascript %}
+  </body>
+</html>

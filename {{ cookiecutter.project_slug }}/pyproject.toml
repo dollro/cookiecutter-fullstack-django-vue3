@@ -1,0 +1,13 @@
+[tool.black]
+# configuration for the code formatter black
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+	| docs
+	| node_modules
+	| migrations
+	| .git
+	| .tox
+)/
+'''

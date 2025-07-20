@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+
+
+# N.B. If only .env files supported variable expansion...
+export CELERY_BROKER_URL="${REDIS_URL}"
+
+
+if [ -z "${POSTGRES_USER}" ]; then
+    base_postgres_image_default_user='postgres'
+    export POSTGRES_USER="${base_postgres_image_default_user}"
+fi
+export DATABASE_URL="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}"
+
+
+postgres_ready() {
+python << END
+import sys
+
+import psycopg
+
+try:
+    psycopg.connect(
+        dbname="${POSTGRES_DB}",
+        user="${POSTGRES_USER}",
+        password="${POSTGRES_PASSWORD}",
+        host="${POSTGRES_HOST}",
+        port="${POSTGRES_PORT}",
+    )
+except psycopg.OperationalError:
+    sys.exit(-1)
+sys.exit(0)
+END
+
+}
+until postgres_ready; do
+  >&2 echo 'Waiting for PostgreSQL to become available...'
+  sleep 1
+done
+>&2 echo 'PostgreSQL is available'
+
+# Replace placeholder parameters in vue build-time environment by actual docker run-time environment variables
+ROOT_DIR=/app/backend_django/static/vue
+if [ -d "$ROOT_DIR" ]; then
+    count=$(ls -1 $ROOT_DIR/*.js 2>/dev/null | wc -l)
+    if [ $count != 0 ]; then
+        for file in $ROOT_DIR/*.js*;
+        do
+            # Your vue variables here...
+        [ -z "${VITE_APP_STATIC_ROOT}" ] && echo "Entrypoint warning: VITE_APP_STATIC_ROOT environment variable is empty."
+        sed -i 's|VITE_APP_STATIC_ROOT_PLACEHOLDER|'${VITE_APP_STATIC_ROOT}'|g' $file
+
+        [ -z "${VITE_APP_API_ROOT}" ] && echo "Entrypoint warning: VITE_APP_API_ROOT environment variable is empty."
+        sed -i 's|VITE_APP_API_ROOT_PLACEHOLDER|'${VITE_APP_API_ROOT}'|g' $file
+        done
+    fi
+else
+    echo "Entrypoint warning: Directory $ROOT_DIR does not exists."
+fi
+
+
+exec "$@"

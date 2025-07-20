@@ -1,0 +1,738 @@
+stages:
+  - lint
+  - test
+  - build
+  - build_manifests
+  - release
+
+variables:
+  # Provided by custom gitlab CI variables defined in the UI
+  
+  # if BUILD_REGISTRY is not set, CI_REGISTRY will be used instead
+  # BUILD_REGISTRY          # <host>[:<port>] eg. "registry.dolltons.com:443"
+  # BUILD_REGISTRY_IMAGE    # <host>[:<port>]/projectname 
+  # BUILD_REGISTRY_USER     # eg. "username"
+  # BUILD_REGISTRY_PASSWORD # eg. "password"
+
+  # if RELEASE_REGISTRY is not set, stage release will fail with an error message
+  # RELEASE_REGISTRY   # <host>[:<port>] eg. "registry.dolltons.com:443"
+  # RELEASE_REGISTRY_IMAGE    # <host>[:<port>]/projectname eg. "registry.example.com:443/{{cookiecutter.project_slug}}"
+  # RELEASE_REGISTRY_USER     # eg. "username"
+  # RELEASE_REGISTRY_PASSWORD # eg. "password"
+
+
+  ## Platform Build Control (can be overridden in GitLab UI)
+  BUILD_AMD64: "true"   # Always enabled by default
+  BUILD_ARMHF: "false"   # Disabled by default
+  BUILD_ARM64: "true"   # Disabled by default
+
+  # ARM Build Strategy Control
+  E2C_USAGE: "true"  # Default: use proven E2C remote builds
+  # E2C Instance Strategy Control (REQUIRED when E2C_USAGE=true):
+  # E2C_INSTANCE_STRATEGY: "existing"   # Use existing instance approach
+  # E2C_INSTANCE_STRATEGY: "template"   # Use template-based instance approach
+  E2C_INSTANCE_STRATEGY: "template" 
+  
+  # Required CI/CD Variables for E2C Builds (set in GitLab project settings):
+  # AWS_ACCESS_KEY_ID: "Your AWS Access Key ID"
+  # AWS_SECRET_ACCESS_KEY: "Your AWS Secret Access Key"
+  # AWS_DEFAULT_REGION: "Your AWS Region (e.g., eu-north-1)"
+  
+  # Option 1: Existing Instance Strategy
+  # E2C_INSTANCE_STRATEGY: "existing"               # REQUIRED: Must be set explicitly
+  # E2C_INSTANCE_ID: "i-0123456789abcdef0"          # ID of your pre-configured E2C EC2 instance
+  # E2C_SSH_USER: "admin"                           # SSH username for the E2C instance
+  # E2C_SSH_PRIVATE_KEY: "..."                      # Base64-encoded private SSH key (see encoding below)
+  #
+  # Option 2: Template-based Instance Strategy (recommended)
+  # E2C_INSTANCE_STRATEGY: "template"               # REQUIRED: Must be set explicitly
+  # E2C_LAUNCH_TEMPLATE_ID: "lt-08c7ea1a2658e52f7"  # Your launch template ID (e.g., ci_arm64_t4g.xlarge)
+  # E2C_SSH_USER: "admin"                           # SSH username (depends on AMI in template)
+  # E2C_SSH_PRIVATE_KEY: "..."                      # Base64-encoded private SSH key (see encoding below)
+  # E2C_LAUNCH_TEMPLATE_VERSION: "1"                # Template version (optional, defaults to $Latest)
+  # E2C_INSTANCE_TYPE: ""                           # Override template instance type (optional)
+  # E2C_SUBNET_ID: ""                               # Target subnet (optional, uses template default)
+  # E2C_SECURITY_GROUP_IDS: ""                      # Security groups (optional, uses template default)
+  # E2C_KEY_PAIR_NAME: ""                           # SSH key pair (optional, uses template default)
+  # E2C_USE_SPOT: "false"                           # Enable spot instances for cost savings (optional)
+  # E2C_SPOT_MAX_PRICE: ""                          # Max spot price when E2C_USE_SPOT=true (optional)
+  #
+  # SSH Private Key Encoding (required for both strategies):
+  # To generate the variable value for the UI: cat instance_ssh_key.pem | base64 -w0 > instance_ssh_key.base64
+  # In the script below, decoding is applied via: echo "${SSH_PRIVATE_KEY}" | base64 -d
+
+  
+  E2C_BUILD_DIR: "~/builds"  #Note: use a dir within home of the user, so that it can be accessed, e.g. ~/builds
+
+  ###################################################################################################################
+  ## no changes below this line - all user adaptions go above #######################################################
+  ###################################################################################################################
+
+  #
+  # fixed variables 
+  #
+
+  DOCKER_DRIVER: overlay2
+  # this disables TLS
+  DOCKER_TLS_CERTDIR: ""
+  # pip directly uses this env var to store its cache in that directory
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  # gitlab internal cache: Improve the (de-)compression speed by using a more efficient ZIP implementation
+  FF_USE_FASTZIP: "true"
+  ARTIFACT_COMPRESSION_LEVEL: "fast"
+  CACHE_COMPRESSION_LEVEL: "fast"
+  # Force-enable BuildKit in "docker build" commands (on Linux it is disabled by default)
+  DOCKER_BUILDKIT: "1"
+  # Make buildkit also available in docker-compose
+  COMPOSE_DOCKER_CLI_BUILD: "1"
+  #Defined always
+  PLATFORM_SLUG_AMD64: "amd64"
+  PLATFORM_SLUG_ARMHF: "armhf"
+  PLATFORM_SLUG_ARM64: "arm64"
+  ## Platform definitions (always defined for when builds are enabled)
+  PLATFORM_AMD64: "linux/amd64"
+  PLATFORM_ARMHF: "linux/arm/v7"
+  PLATFORM_ARM64: "linux/arm64"
+
+ 
+# Reusable script blocks as YAML anchors
+.docker-setup-script: &docker-setup-script
+  - apk add --no-cache bash
+  - |
+    if [ -z "$BUILD_REGISTRY" ]; then
+      export _BUILD_REGISTRY=$CI_REGISTRY
+      export _BUILD_REGISTRY_IMAGE=$CI_REGISTRY_IMAGE
+      export _BUILD_REGISTRY_USER=$CI_REGISTRY_USER 
+      export _BUILD_REGISTRY_PASSWORD=$CI_REGISTRY_PASSWORD
+    else
+      export _BUILD_REGISTRY=$BUILD_REGISTRY
+      export _BUILD_REGISTRY_IMAGE=$BUILD_REGISTRY_IMAGE
+      export _BUILD_REGISTRY_USER=$BUILD_REGISTRY_USER 
+      export _BUILD_REGISTRY_PASSWORD=$BUILD_REGISTRY_PASSWORD
+    fi
+  - export IMAGE_BASENAME=$_BUILD_REGISTRY_IMAGE/{{cookiecutter.project_slug}}   # final image name will be $IMAGE_BASENAME-$SERVICE
+  - export RELEASE_IMAGE_BASENAME=$RELEASE_REGISTRY_IMAGE/{{cookiecutter.project_slug}}
+  - echo Login to build registry $_BUILD_REGISTRY as user $_BUILD_REGISTRY_USER
+  - echo "$_BUILD_REGISTRY_PASSWORD" | docker login -u $_BUILD_REGISTRY_USER --password-stdin $_BUILD_REGISTRY
+  - docker info
+  - export IMAGETAG=$CI_COMMIT_REF_SLUG
+  - export BUILD_TARGET=production
+  - if [ "$CI_COMMIT_BRANCH" == "staging" ]; then export BUILD_TARGET=staging; fi
+
+.buildx-setup-script: &buildx-setup-script
+  - docker context ls 2>/dev/null | grep tls-environment >/dev/null || docker context create tls-environment
+  - docker buildx ls 2>/dev/null | grep ci-project-builder >/dev/null || docker buildx create --name ci-project-builder --driver docker-container --bootstrap --use tls-environment
+  - docker buildx use ci-project-builder
+
+# Individual templates (reusable)
+.dind-template:
+  image: docker:28
+  services:
+    - name: docker:28-dind
+      alias: docker
+  before_script: 
+    - *docker-setup-script
+    - ls -la
+  tags: # use a custom runner with docker executor and privileged access, so that docker-in-docker can run
+    - docker
+    - linux
+    - amd64
+  variables:
+    #enable TLS using our dind runner
+    DOCKER_TLS_CERTDIR: "/certs"
+
+# Conditional ARM build template - uses E2C or local cross-compilation
+.arm-build-template:
+  image: docker:28
+  services:
+    - name: docker:28-dind
+      alias: docker
+  before_script:
+    - *docker-setup-script
+    - ls -la
+    - |
+      if [ "$E2C_USAGE" == "true" ]; then
+        echo "🚀 Using E2C remote builds for ARM"
+        # Ensure script is executable
+        chmod +x ci_e2c_manager.sh
+        # Execute setup using external script
+        eval "$(./ci_e2c_manager.sh setup)"
+      else
+        echo "🏠 Using local cross-compilation for ARM"
+        # Setup local buildx for cross-compilation
+        echo "Setting up local cross-compilation buildx environment..."
+        docker context ls 2>/dev/null | grep tls-environment >/dev/null || docker context create tls-environment
+        docker buildx ls 2>/dev/null | grep ci-project-builder >/dev/null || docker buildx create --name ci-project-builder --driver docker-container --bootstrap --use tls-environment
+        docker buildx use ci-project-builder
+      fi
+  after_script:
+    - |
+      if [ "$E2C_USAGE" == "true" ]; then
+        echo "🧹 Performing cleanup and teardown..."
+        # Cleanup job-specific build directory (runs even if build failed)
+        ./ci_e2c_manager.sh cleanup || echo "⚠️ Cleanup failed, continuing with teardown..."
+        # Stop the E2C instance
+        ./ci_e2c_manager.sh teardown
+      fi
+  tags:
+    - docker
+    - linux
+    - amd64
+  variables:
+    #enable TLS using our dind runner
+    DOCKER_TLS_CERTDIR: "/certs"
+
+# gitlab internal caching via zip files
+cache:
+  #key: $CI_COMMIT_REF_SLUG
+  # use one cache per job accross all branches
+  key: $CI_JOB_NAME
+  paths:
+    - ${PIP_CACHE_DIR}
+    - .cache/pnpm
+
+##
+##
+## LINT
+##
+##
+precommit:
+  stage: lint
+  image: python:3.12
+  tags:
+    - docker
+    - linux
+    - amd64
+  rules:
+    - if: >
+        $CI_COMMIT_BRANCH != "dev-e2c" && 
+        ( $CI_COMMIT_BRANCH =~ /^issue-.*$/m ||
+        $CI_COMMIT_BRANCH =~ /^feature-.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^dev-.*$/ ||
+        $CI_COMMIT_BRANCH == "develop" ||
+        $CI_COMMIT_BRANCH == "staging" ||
+        $CI_COMMIT_BRANCH == "master" )
+  # except:
+  #   - debug-ci
+  #   - tags
+  variables:
+    PIP_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pip"
+    PRE_COMMIT_CACHE_DIR: "${CI_PROJECT_DIR}/.cache/pre-commit"
+#    PRE_COMMIT_CACHE_DIR: "${CACHE_DIR}/pre-commit"
+#    PRE_COMMIT_CACHE_DIR: ".cache/pre-commit"
+  cache:
+    paths:
+      - .cache
+  before_script:
+    - mkdir -p $PIP_CACHE_DIR
+    - mkdir -p $PRE_COMMIT_CACHE_DIR
+    - pip install -q pre-commit
+  script:
+    - PRE_COMMIT_HOME=$PRE_COMMIT_CACHE_DIR pre-commit run --show-diff-on-failure --color=always --all-files    
+
+
+test:
+  stage: test
+  extends: .dind-template
+  rules:
+    #- if: $CI_COMMIT_BRANCH =~ /^issue-.*$/m || $CI_COMMIT_BRANCH =~ /^feature-.*$/ || $CI_COMMIT_BRANCH =~ /^dev-.*$/ || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master"
+    - if: >
+        $CI_COMMIT_BRANCH != "dev-e2c" && 
+        ( $CI_COMMIT_BRANCH =~ /^issue-.*$/m ||
+        $CI_COMMIT_BRANCH =~ /^feature-.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^dev-.*$/ ||
+        $CI_COMMIT_BRANCH == "develop" ||
+        $CI_COMMIT_BRANCH == "staging" ||
+        $CI_COMMIT_BRANCH == "master" )
+
+  cache:
+    paths:
+      - .cache
+
+  # only:
+  #   - develop
+  #   - staging
+  #   - master
+  #   - /^issue-.*$/
+  #   - /^feature-.*$/
+  #   - /^dev-.*$/
+  script:
+    - export PLATFORM=$PLATFORM_AMD64
+    - export PLATFORM_SLUG=$PLATFORM_SLUG_AMD64
+    - export IMAGETAG=test-$CI_COMMIT_REF_SLUG
+    - BUILD_TARGET=local
+    - echo ---------------------------------------------
+    - echo Build images with imagetag $IMAGETAG for build-target $BUILD_TARGET and platform $PLATFORM using docker buildx bake
+    - echo Image Basename is $IMAGE_BASENAME
+    - echo ---------------------------------------------
+    - docker context ls 2>/dev/null | grep tls-environment >/dev/null || docker context create tls-environment
+    - docker buildx ls 2>/dev/null | grep ci-project-builder >/dev/null || docker buildx create --name ci-project-builder --driver docker-container --bootstrap --use tls-environment
+    - docker buildx use ci-project-builder
+
+    # Build all test images in parallel using buildx bake
+    - docker buildx bake --file docker-bake-test.hcl --progress=plain --push test
+
+    #
+    # TEST
+    #
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm node-vue bash -c "pnpm --dir ./vue_frontend run build -- --mode production"
+    #- env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python manage.py migrate && python manage.py collectstatic --noinput"
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python manage.py migrate"
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run django pytest --junitxml=test_report.xml
+  artifacts:
+    when: always
+    reports:
+      junit: test_report.xml
+
+##
+## BUILD services with 1stage builds on amd64
+##
+build_images_for_deployment_amd64:
+  stage: build
+  extends: .dind-template
+  rules:
+    - if: >
+        $BUILD_AMD64 == "true" && 
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master")
+  # only:
+  #   - staging
+  #   - master
+  #   - tags
+  #parallel: 4
+  script:
+    - export PLATFORM=$PLATFORM_AMD64
+    - export PLATFORM_SLUG=$PLATFORM_SLUG_AMD64
+    - *buildx-setup-script
+    - echo "Building all single-stage services in parallel using buildx bake..."
+    - echo "Platform - $PLATFORM ($PLATFORM_SLUG), Build Target - $BUILD_TARGET, Image Tag - $IMAGETAG"
+    # Choose the appropriate bake file based on BUILD_TARGET
+    - |
+      if [ "$BUILD_TARGET" == "staging" ]; then
+        BAKE_FILE="docker-bake-staging.hcl"
+      else
+        BAKE_FILE="docker-bake-production.hcl"
+      fi
+      echo "Using bake file: $BAKE_FILE"
+    # Build all single-stage services in parallel using buildx bake
+    - docker buildx bake --file $BAKE_FILE --progress=plain all
+
+
+
+# ##
+# ## BUILD services with 1stage builds on amd64
+# ##
+# build_images_for_deployment_1stage_amd64:
+#   stage: build
+#   extends: .dind-template
+#   rules:
+#     - if: $BUILD_AMD64 == "true" && ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master")
+#   # only:
+#   #   - staging
+#   #   - master
+#   #   - tags
+#   #parallel: 4
+#   script:
+#     - export PLATFORM=$PLATFORM_AMD64
+#     - export PLATFORM_SLUG=$PLATFORM_SLUG_AMD64
+#     - *buildx-setup-script
+#     - echo "Building all single-stage services in parallel using buildx bake..."
+#     - echo "Platform - $PLATFORM ($PLATFORM_SLUG), Build Target - $BUILD_TARGET, Image Tag - $IMAGETAG"
+#     # Choose the appropriate bake file based on BUILD_TARGET
+#     - |
+#       if [ "$BUILD_TARGET" == "staging" ]; then
+#         BAKE_FILE="docker-bake-staging.hcl"
+#       else
+#         BAKE_FILE="docker-bake-production.hcl"
+#       fi
+#       echo "Using bake file: $BAKE_FILE"
+#     # Build all single-stage services in parallel using buildx bake
+#     - docker buildx bake --file $BAKE_FILE --progress=plain single-stage
+      
+
+# ##
+# ## BUILD services with 2stage builds on amd64
+# ##
+# build_images_for_deployment_2stages_amd64:
+#   stage: build
+#   extends: .dind-template
+#   rules:
+#     - if: $BUILD_AMD64 == "true" && ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master")
+#   # only:
+#   #   - staging
+#   #   - master
+#   #   - tags
+#   #parallel: 3
+#   script:
+#     - export PLATFORM=$PLATFORM_AMD64
+#     - export PLATFORM_SLUG=$PLATFORM_SLUG_AMD64
+#     - *buildx-setup-script
+#     - echo "Building multi-stage services using buildx bake..."
+#     - echo "Platform - $PLATFORM ($PLATFORM_SLUG), Build Target - $BUILD_TARGET, Image Tag - $IMAGETAG"
+#     # Choose the appropriate bake file based on BUILD_TARGET
+#     - |
+#       if [ "$BUILD_TARGET" == "staging" ]; then
+#         BAKE_FILE="docker-bake-staging.hcl"
+#       else
+#         BAKE_FILE="docker-bake-production.hcl"
+#       fi
+#       echo "Using bake file: $BAKE_FILE"
+#     # Build multi-stage services (Django with pre-stage dependency) using buildx bake
+#     - docker buildx bake --file $BAKE_FILE --progress=plain multi-stage
+
+
+
+
+# ##
+# ## BUILD services with 1stage builds on ARM (armhf + arm64)
+# ##
+# build_images_for_deployment_1stage_arm:
+#   stage: build
+#   extends: .arm-build-template
+#   rules:
+#     - if: >
+#         ($BUILD_ARMHF == "true" || $BUILD_ARM64 == "true") &&
+#         ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev-e2c")
+#   script:
+#     # Choose the appropriate bake file based on BUILD_TARGET
+#     - |
+#       if [ "$BUILD_TARGET" == "staging" ]; then
+#         BAKE_FILE="docker-bake-staging.hcl"
+#       else
+#         BAKE_FILE="docker-bake-production.hcl"
+#       fi
+#     # Build for each enabled ARM platform
+#     - |
+#       for ARCH in armhf arm64; do
+#         if [ "$ARCH" == "armhf" ] && [ "$BUILD_ARMHF" == "true" ]; then
+#           export PLATFORM=$PLATFORM_ARMHF
+#           export PLATFORM_SLUG=$PLATFORM_SLUG_ARMHF
+#           echo "🔨 Building single-stage services for ARMHF..."
+#           echo "Using bake file: $BAKE_FILE for ARMHF builds"
+#           # Conditional execution based on E2C_USAGE
+#           if [ "$E2C_USAGE" == "true" ]; then
+#             echo "🚀 Executing remote buildx bake on E2C for ARMHF..."
+#             ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=single-stage --bake-file="$BAKE_FILE"
+#           else
+#             echo "🏠 Executing local cross-compilation for ARMHF..."
+#             echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+#             docker buildx bake --file $BAKE_FILE --progress=plain single-stage
+#           fi
+#         elif [ "$ARCH" == "arm64" ] && [ "$BUILD_ARM64" == "true" ]; then
+#           export PLATFORM=$PLATFORM_ARM64
+#           export PLATFORM_SLUG=$PLATFORM_SLUG_ARM64
+#           echo "🔨 Building single-stage services for ARM64..."
+#           echo "Using bake file: $BAKE_FILE for ARM64 builds"
+#           # Conditional execution based on E2C_USAGE
+#           if [ "$E2C_USAGE" == "true" ]; then
+#             echo "🚀 Executing remote buildx bake on E2C for ARM64..."
+#             ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=single-stage --bake-file="$BAKE_FILE"
+#           else
+#             echo "🏠 Executing local cross-compilation for ARM64..."
+#             echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+#             docker buildx bake --file $BAKE_FILE --progress=plain single-stage
+#           fi
+#         fi
+#       done
+
+
+# ##
+# ## BUILD services with 2stage builds on ARM (armhf + arm64)
+# ##
+# build_images_for_deployment_2stages_arm:
+#   stage: build
+#   extends: .arm-build-template
+#   rules:
+#     - if: >
+#         ($BUILD_ARMHF == "true" || $BUILD_ARM64 == "true") &&
+#         ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev-e2c")
+#   script:
+#     # Choose the appropriate bake file based on BUILD_TARGET
+#     - |
+#       if [ "$BUILD_TARGET" == "staging" ]; then
+#         BAKE_FILE="docker-bake-staging.hcl"
+#       else
+#         BAKE_FILE="docker-bake-production.hcl"
+#       fi
+#     # Build for each enabled ARM platform
+#     - |
+#       for ARCH in armhf arm64; do
+#         if [ "$ARCH" == "armhf" ] && [ "$BUILD_ARMHF" == "true" ]; then
+#           export PLATFORM=$PLATFORM_ARMHF
+#           export PLATFORM_SLUG=$PLATFORM_SLUG_ARMHF
+#           echo "🔨 Building multi-stage services for ARMHF..."
+#           echo "Using bake file: $BAKE_FILE for ARMHF multi-stage builds"
+#           # Conditional execution based on E2C_USAGE
+#           if [ "$E2C_USAGE" == "true" ]; then
+#             echo "🚀 Executing remote buildx bake on E2C for ARMHF multi-stage..."
+#             ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=multi-stage --bake-file="$BAKE_FILE"
+#           else
+#             echo "🏠 Executing local cross-compilation for ARMHF multi-stage..."
+#             echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+#             docker buildx bake --file $BAKE_FILE --progress=plain multi-stage
+#           fi
+#         elif [ "$ARCH" == "arm64" ] && [ "$BUILD_ARM64" == "true" ]; then
+#           export PLATFORM=$PLATFORM_ARM64
+#           export PLATFORM_SLUG=$PLATFORM_SLUG_ARM64
+#           echo "🔨 Building multi-stage services for ARM64..."
+#           echo "Using bake file: $BAKE_FILE for ARM64 multi-stage builds"
+#           # Conditional execution based on E2C_USAGE
+#           if [ "$E2C_USAGE" == "true" ]; then
+#             echo "🚀 Executing remote buildx bake on E2C for ARM64 multi-stage..."
+#             ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=multi-stage --bake-file="$BAKE_FILE"
+#           else
+#             echo "🏠 Executing local cross-compilation for ARM64 multi-stage..."
+#             echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+#             docker buildx bake --file $BAKE_FILE --progress=plain multi-stage
+#           fi
+#         fi
+#       done
+  
+
+##
+## BUILD services on ARMHF
+##
+build_images_for_deployment_armhf:
+  stage: build
+  extends: .arm-build-template
+  rules:
+    - if: >
+        ($BUILD_ARMHF == "true") &&
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev-e2c")
+  script:
+    # Choose the appropriate bake file based on BUILD_TARGET
+    - |
+      if [ "$BUILD_TARGET" == "staging" ]; then
+        BAKE_FILE="docker-bake-staging.hcl"
+      else
+        BAKE_FILE="docker-bake-production.hcl"
+      fi
+    - |
+      export PLATFORM=$PLATFORM_ARMHF
+      export PLATFORM_SLUG=$PLATFORM_SLUG_ARMHF
+      echo "🔨 Building services for ARMHF..."
+      echo "Using bake file: $BAKE_FILE for ARMHF builds"
+      # Conditional execution based on E2C_USAGE
+      if [ "$E2C_USAGE" == "true" ]; then
+        echo "🚀 Executing remote buildx bake on E2C for ARMHF..."
+        ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=all --bake-file="$BAKE_FILE"
+      else
+        echo "🏠 Executing local cross-compilation for ARMHF..."
+        echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+        docker buildx bake --file $BAKE_FILE --progress=plain all
+      fi
+    
+##
+## BUILD services on ARM64
+##
+build_images_for_deployment_arm64:
+  stage: build
+  extends: .arm-build-template
+  rules:
+    - if: >
+        ($BUILD_ARM64 == "true") &&
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev-e2c")
+  script:
+    # Choose the appropriate bake file based on BUILD_TARGET
+    - |
+      if [ "$BUILD_TARGET" == "staging" ]; then
+        BAKE_FILE="docker-bake-staging.hcl"
+      else
+        BAKE_FILE="docker-bake-production.hcl"
+      fi
+    # Build for each enabled ARM platform
+    - |
+      export PLATFORM=$PLATFORM_ARM64
+      export PLATFORM_SLUG=$PLATFORM_SLUG_ARM64
+      echo "🔨 Building services for ARM64..."
+      echo "Using bake file: $BAKE_FILE for ARM64 builds"
+      # Conditional execution based on E2C_USAGE
+      if [ "$E2C_USAGE" == "true" ]; then
+        echo "🚀 Executing remote buildx bake on E2C for ARM64..."
+        ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=all --bake-file="$BAKE_FILE"
+      else
+        echo "🏠 Executing local cross-compilation for ARM64..."
+        echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+        docker buildx bake --file $BAKE_FILE --progress=plain all
+      fi
+
+
+
+# ##
+# ## BUILD services on ARM (armhf + arm64, sequentielly)
+# ##
+# build_images_for_deployment_arm:
+#   stage: build
+#   extends: .arm-build-template
+#   rules:
+#     - if: >
+#         ($BUILD_ARMHF == "true" || $BUILD_ARM64 == "true") &&
+#         ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev-e2c")
+#   script:
+#     # Choose the appropriate bake file based on BUILD_TARGET
+#     - |
+#       if [ "$BUILD_TARGET" == "staging" ]; then
+#         BAKE_FILE="docker-bake-staging.hcl"
+#       else
+#         BAKE_FILE="docker-bake-production.hcl"
+#       fi
+#     # Build for each enabled ARM platform
+#     - |
+#       for ARCH in armhf arm64; do
+#         if [ "$ARCH" == "armhf" ] && [ "$BUILD_ARMHF" == "true" ]; then
+#           export PLATFORM=$PLATFORM_ARMHF
+#           export PLATFORM_SLUG=$PLATFORM_SLUG_ARMHF
+#           echo "🔨 Building services for ARMHF..."
+#           echo "Using bake file: $BAKE_FILE for ARMHF builds"
+#           # Conditional execution based on E2C_USAGE
+#           if [ "$E2C_USAGE" == "true" ]; then
+#             echo "🚀 Executing remote buildx bake on E2C for ARMHF..."
+#             ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=all --bake-file="$BAKE_FILE"
+#           else
+#             echo "🏠 Executing local cross-compilation for ARMHF..."
+#             echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+#             docker buildx bake --file $BAKE_FILE --progress=plain all
+#           fi
+#         elif [ "$ARCH" == "arm64" ] && [ "$BUILD_ARM64" == "true" ]; then
+#           export PLATFORM=$PLATFORM_ARM64
+#           export PLATFORM_SLUG=$PLATFORM_SLUG_ARM64
+#           echo "🔨 Building services for ARM64..."
+#           echo "Using bake file: $BAKE_FILE for ARM64 builds"
+#           # Conditional execution based on E2C_USAGE
+#           if [ "$E2C_USAGE" == "true" ]; then
+#             echo "🚀 Executing remote buildx bake on E2C for ARM64..."
+#             ./ci_e2c_manager.sh build --platform="$PLATFORM" --target=all --bake-file="$BAKE_FILE"
+#           else
+#             echo "🏠 Executing local cross-compilation for ARM64..."
+#             echo "Building locally for $PLATFORM ($PLATFORM_SLUG)..."
+#             docker buildx bake --file $BAKE_FILE --progress=plain all
+#           fi
+#         fi
+#       done
+
+ 
+
+##
+##
+## BUILD FINALIZE: Merge Manifests
+##
+##
+merge_manifests:
+  stage: build_manifests
+  extends: .dind-template
+  rules:
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master")
+  #ToDo: make the architecture list dynamic
+  script:
+    - chmod +x ./ci_merge_manifests.sh; ./ci_merge_manifests.sh
+
+
+##
+##
+## RELEASE
+##
+##
+release_images:
+  stage: release
+  extends: .dind-template
+  rules:
+    - if: $CI_COMMIT_TAG != null
+    #=~ /^dev_[0-9]+\.[0-9]+$/
+    - if: $CI_COMMIT_BRANCH == "master"
+  script:
+    - |
+      if [ -z "$RELEASE_REGISTRY" ]; then
+        echo "Error: No release registry is set in variable RELEASE_REGISTRY"
+        exit 1
+      fi 
+    - export IMAGETAG=latest
+    - if [ $CI_COMMIT_TAG != null ]; then 
+      export IMAGETAG=$CI_COMMIT_TAG; fi
+    - apk update
+    - apk add --no-cache curl
+    - curl -L https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 >regctl
+    - chmod 755 regctl
+    - echo "$RELEASE_REGISTRY_PASSWORD" | docker login -u $RELEASE_REGISTRY_USER --password-stdin $RELEASE_REGISTRY
+    - |
+      for SERVICE in django postgres traefik
+      do
+        ./regctl image copy $IMAGE_BASENAME-$SERVICE:$IMAGETAG $RELEASE_IMAGE_BASENAME-$SERVICE:$IMAGETAG
+      done
+    
+
+
+# ##
+# ##
+# ## DEPLOY
+# ##
+# ##
+# deploy_staging:
+#   stage: deploy
+#   extends: .dind-template
+#   environment:
+#     name: staging
+#     url: https://staging.example.com
+#   only:
+#     - staging
+#   script:
+#     - docker info
+#     - export IMAGETAG=staging
+#     - eval $(ssh-agent -s)
+#     - echo "$SSH_DEPLOY_SERVER_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - echo "StrictHostKeyChecking no " > ~/.ssh/config
+#     - echo "Now on staging server..."
+#     - docker context create remote --docker "host=ssh://sshadmin2@144.91.82.253:1222"
+#     - docker --context remote ps
+#     - echo "$CI_REGISTRY_PASSWORD" | docker --context remote login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml down --remove-orphans || true
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml pull
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml run --rm django bash -c "python manage.py migrate"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml up -d
+
+# deploy_production:
+#   stage: deploy
+#   extends: .dind-template
+#   environment:
+#     name: production
+#     url: https://www.example.com
+#   only:
+#     - master
+#   script:
+#     - docker info
+#     - export IMAGETAG=latest
+#     - eval $(ssh-agent -s)
+#     - echo "$SSH_DEPLOY_SERVER_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+#     - mkdir -p ~/.ssh
+#     - chmod 700 ~/.ssh
+#     - echo "StrictHostKeyChecking no " > ~/.ssh/config
+#     - echo "Now on staging server..."
+#     - docker context create remote --docker "host=ssh://sshadmin@91.194.90.54:1222"
+#     - docker --context remote ps
+#     - echo "$CI_REGISTRY_PASSWORD" | docker --context remote login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml down --remove-orphans || true
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml pull
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml run --rm django bash -c "python manage.py migrate"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml up -d
+      
+
+
+##
+##
+## DEBUG CI JOBS
+##
+##
+
+debug_ci:
+  stage: test
+  extends: .dind-template
+  tags:
+    - docker
+    - linux
+  rules:
+    - if: $CI_COMMIT_BRANCH == "debug-ci"
+  script:
+    - sleep 30  #sleep for 30min to allow for debugging via the debug terminal in gitlab

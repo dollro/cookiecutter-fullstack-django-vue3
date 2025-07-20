@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@layer base {
+  h1 {
+    font-size: var(--text-xl);
+  }
+  h2 {
+    font-size: var(--text-xl);
+  }
+  h3 {
+    font-size: var(--text-lg);
+  }
+  a {
+    color: var(--color-blue-600);
+    text-decoration-line: underline;
+  }
+}
+
+
+@theme {
+  --font-sans: 'Lato', sans-serif;
+  --font-serif: 'Alegreya' serif;
+  --font-mono: ui-monospace, "Courier New", monospace;
+
+}
+@layer components {
+  /* .btn-primary {
+      @apply py-1.5 px-3 text-center bg-blue-700 rounded-md text-white;
+  } */
+}

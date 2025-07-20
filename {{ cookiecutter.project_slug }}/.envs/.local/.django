@@ -1,0 +1,35 @@
+# General
+# ------------------------------------------------------------------------------
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+#DJANGO_LOGFILE=/app/backend_django.log
+DJANGO_LOGLEVEL=INFO
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=127.0.0.1,.localhost
+DJANGO_VITE_DEV_MODE=True
+
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL=redis://redis:6379/0
+
+# Celery
+# ------------------------------------------------------------------------------
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+#CELERY_TASK_ALWAYS_EAGER=True
+
+# Flower
+# ------------------------------------------------------------------------------
+CELERY_FLOWER_USER=MCkbCmcPupfmmeWoRIcWmzcRyvlWWKFZ
+CELERY_FLOWER_PASSWORD=4h1RBSLCHZrwrncWwVbgrRXadHvGIMF9dGIXfMD0r2796mCVZyUlSaZP6DFPDt8o
+
+# PostgreSQL
+# ------------------------------------------------------------------------------
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB={{cookiecutter.project_slug}}
+POSTGRES_USER={{cookiecutter.project_slug}}
+POSTGRES_PASSWORD=tgdeXwur04BERVcqoBkRzfiAPYQGn1Ph9Z9llsbW1sEuYmG9XRksgZ6uUYqVf7ly
+#lhschoh893ewdd3d3
+
+# {{cookiecutter.project_slug}}

@@ -1,0 +1,37 @@
+
+
+
+pre-commit==4.0.1  # https://github.com/pre-commit/pre-commit
+pytz==2021.3  # https://github.com/stub42/pytz
+python-slugify==5.0.2  # https://github.com/un33k/python-slugify
+Pillow==11.0.0  # https://github.com/python-pillow/Pillow
+cryptography==45.0.2  # https://stackoverflow.com/questions/74981558/error-updating-python3-pip-attributeerror-module-lib-has-no-attribute-openss
+argon2-cffi==21.3.0  # https://github.com/hynek/argon2_cffi
+whitenoise==5.3.0  # https://github.com/evansd/whitenoise
+redis==6.2.0  # https://pypi.org/project/redis/
+hiredis==3.2.1  # https://github.com/redis/hiredis-py
+celery==5.5.3  # pyup: < 5.0,!=4.4.7  # https://github.com/celery/celery
+flower==2.0.1  # https://github.com/mher/flower
+psycopg==3.1.8  # https://github.com/psycopg/psycopg2
+
+
+# Django
+# ------------------------------------------------------------------------------
+Django==5.0 # pyup: < 3.1  # https://www.djangoproject.com/
+django-environ==0.12.0  # https://github.com/joke2k/django-environ
+django-model-utils==4.3.1  # https://github.com/jazzband/django-model-utils
+django-allauth[socialaccount]==64.0.0  # https://github.com/pennersr/django-allauth
+#django-crispy-forms==1.14.0  # https://github.com/django-crispy-forms/django-crispy-forms
+django-redis==6.0.0  # https://github.com/jazzband/django-redis
+# Django REST Framework
+djangorestframework==3.16.0  # https://github.com/encode/django-rest-framework
+django-cors-headers==4.6.0 # https://github.com/adamchainz/django-cors-headers
+
+django-celery-beat==2.8.1  # https://github.com/celery/django-celery-beat
+dj-rest-auth==6.0.0  # https://github.com/iMerica/dj-rest-auth
+
+
+# translation
+django-modeltranslation==0.19.16  # https://github.com/deschler/django-modeltranslation
+
+django_vite==3.1.0   #https://pypi.org/project/django-vite/
