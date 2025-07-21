@@ -57,14 +57,6 @@ fi
 # Set deployment target variable for deploy.yml
 export DEPLOYMENT_TARGET=$TARGET
 
-# # Set watchtower environment variable names based on target
-# if [[ "$TARGET" == "asparuha" ]]; then
-#     export WATCHTOWER_REPO_USER_VAR="REPO_USER"
-#     export WATCHTOWER_REPO_PASS_VAR="REPO_PASS"
-# elif [[ "$TARGET" == "wolpertinger" ]]; then
-#     export WATCHTOWER_REPO_USER_VAR="REPO_registry.dolltons.com_USER"
-#     export WATCHTOWER_REPO_PASS_VAR="REPO_registry.dolltons.com_PASS"
-# fi
 
 # Source the environment file - just to get the variables needed for the deploy.yml itself
 #
