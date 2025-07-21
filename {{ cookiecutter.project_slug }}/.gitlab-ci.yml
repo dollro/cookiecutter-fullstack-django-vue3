@@ -9,13 +9,13 @@ variables:
   # Provided by custom gitlab CI variables defined in the UI
   
   # if BUILD_REGISTRY is not set, CI_REGISTRY will be used instead
-  # BUILD_REGISTRY          # <host>[:<port>] eg. "registry.dolltons.com:443"
+  # BUILD_REGISTRY          # <host>[:<port>] eg. "registry.example.com:443"
   # BUILD_REGISTRY_IMAGE    # <host>[:<port>]/projectname 
   # BUILD_REGISTRY_USER     # eg. "username"
   # BUILD_REGISTRY_PASSWORD # eg. "password"
 
   # if RELEASE_REGISTRY is not set, stage release will fail with an error message
-  # RELEASE_REGISTRY   # <host>[:<port>] eg. "registry.dolltons.com:443"
+  # RELEASE_REGISTRY   # <host>[:<port>] eg. "registry.example.com:443"
   # RELEASE_REGISTRY_IMAGE    # <host>[:<port>]/projectname eg. "registry.example.com:443/{{cookiecutter.project_slug}}"
   # RELEASE_REGISTRY_USER     # eg. "username"
   # RELEASE_REGISTRY_PASSWORD # eg. "password"

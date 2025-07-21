@@ -4,8 +4,6 @@
 #cert/cert.pem
 #cert/key.pem
 
-# Docker buildx cache directory (local builds)
-.buildx-cache/
 
 # Celery
 celerybeat-schedule.db
@@ -149,6 +147,11 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+
+# pnpm and docker buildx cache directory (local builds)
+.buildx-cache/
+.modules.yaml
+
 
 # Typescript v1 declaration files
 typings/
