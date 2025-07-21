@@ -1,6 +1,6 @@
 ## this docker compose file for deployment needs these environment variables set:
 ##
-## DOCKER_REGISTRY       # e.g. registry.dolltons.com/{{cookiecutter.project_slug}}   # the docker registry (project used)
+## DOCKER_REGISTRY       # e.g. {{ cookiecutter.docker_registry }}   # the docker registry (project used)
 ## DOCKER_REGISTRY_USER  # e.g. {{cookiecutter.project_slug}}                         # the login user for the docker pull
 ## DOCKER_REGISTRY_PASS  # e.g. {{cookiecutter.project_slug}}                         # the login password for the docker pull
 ## DEPLOYMENT_TARGET     # e.g. asparuha
