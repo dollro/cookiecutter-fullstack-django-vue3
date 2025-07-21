@@ -50,8 +50,7 @@ local_venv_db_setup:
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DB}'" | grep -q 1 || sudo -E -u postgres psql -p${POSTGRES_PORT}  -c "CREATE DATABASE ${POSTGRES_DB};"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "SELECT 1 FROM pg_roles WHERE rolname = '${POSTGRES_USER}'" | grep -q 1 || sudo -E -u postgres psql -p${POSTGRES_PORT}  -c "CREATE USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}'; \
-		ALTER    #container_name: django
- ROLE ${POSTGRES_USER} SET client_encoding TO 'utf-8'; \
+		ALTER ROLE ${POSTGRES_USER} SET client_encoding TO 'utf-8'; \
 		GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO ${POSTGRES_USER};"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "ALTER USER ${POSTGRES_USER} CREATEDB;"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -d ${POSTGRES_DB} -tc "GRANT USAGE, CREATE ON SCHEMA public TO ${POSTGRES_USER};"

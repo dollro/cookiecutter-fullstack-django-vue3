@@ -7,7 +7,7 @@ It now implements the following
 
  
 1. Backend (in directory backend_django)
-    - Django 5
+    - Django 5 with Python 3.12
     - Postgres 17
     - REST API
     - JWT auth
