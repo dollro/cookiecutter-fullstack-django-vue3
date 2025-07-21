@@ -5,6 +5,8 @@ ARG BUILDKIT_INLINE_CACHE
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
+ARG USER_ID=1000
+ARG GROUP_ID=1000
 ENV UNAME django
 #ENV UNAME ${USER}
 
@@ -43,34 +45,33 @@ RUN python -m pip install --upgrade pip
 RUN --mount=type=cache,id=pip-cache-$TARGETPLATFORM,target=/root/.cache/pip pip install -r /requirements/local.txt
 
 # Setup Users and Groups
-RUN export UNAME=$UNAME UID=1001 GID=1001 && \
+RUN export UNAME=$UNAME UID=${USER_ID} GID=${GROUP_ID} && \
     mkdir -p "/home/${UNAME}" && \
     echo "${UNAME}:x:${UID}:${GID}:${UNAME} User,,,:/home/${UNAME}:/bin/bash" >> /etc/passwd && \
     echo "${UNAME}:x:${UID}:" >> /etc/group && \
     mkdir -p /etc/sudoers.d && \
     echo "${UNAME} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${UNAME} && \
     chmod 0440 /etc/sudoers.d/${UNAME} && \
-    chown 1001:1001 -R /home/${UNAME} && \
+    chown ${UID}:${GID} -R /home/${UNAME} && \
     gpasswd -a ${UNAME} audio
 
-
-COPY ./compose/local/django/entrypoint /entrypoint
+COPY --chown=$UNAME:$UNAME ./compose/local/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
-COPY ./compose/local/django/start /start
+COPY --chown=$UNAME:$UNAME ./compose/local/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
-COPY ./compose/local/django/celery/worker/start /start-celeryworker
+COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker
 RUN chmod +x /start-celeryworker
 
-COPY ./compose/local/django/celery/beat/start /start-celerybeat
+COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/beat/start /start-celerybeat
 RUN sed -i 's/\r$//g' /start-celerybeat
 RUN chmod +x /start-celerybeat
 
-COPY ./compose/local/django/celery/flower/start /start-flower
+COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 

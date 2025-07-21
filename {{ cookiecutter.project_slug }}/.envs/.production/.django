@@ -2,7 +2,9 @@
 # ------------------------------------------------------------------------------
 USE_DOCKER=yes
 IPYTHONDIR=/app/.ipython
-
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_EMAIL={{ cookiecutter.email }}
+DJANGO_SUPERUSER_PASSWORD=7821vg21d99218hd2399hd929329
 
 # Logging and Debugging
 #--------------------------------------------------------------------------------
