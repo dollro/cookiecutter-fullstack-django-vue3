@@ -50,7 +50,8 @@ local_venv_db_setup:
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "SELECT 1 FROM pg_database WHERE datname = '${POSTGRES_DB}'" | grep -q 1 || sudo -E -u postgres psql -p${POSTGRES_PORT}  -c "CREATE DATABASE ${POSTGRES_DB};"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "SELECT 1 FROM pg_roles WHERE rolname = '${POSTGRES_USER}'" | grep -q 1 || sudo -E -u postgres psql -p${POSTGRES_PORT}  -c "CREATE USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}';"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "ALTER USER ${POSTGRES_USER} WITH PASSWORD '${POSTGRES_PASSWORD}'; \
-		ALTER ROLE ${POSTGRES_USER} SET client_encoding TO 'utf-8'; \
+		ALTER    #container_name: django
+ ROLE ${POSTGRES_USER} SET client_encoding TO 'utf-8'; \
 		GRANT ALL PRIVILEGES ON DATABASE ${POSTGRES_DB} TO ${POSTGRES_USER};"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -tc "ALTER USER ${POSTGRES_USER} CREATEDB;"
 	sudo -E -u postgres psql -p${POSTGRES_PORT} -d ${POSTGRES_DB} -tc "GRANT USAGE, CREATE ON SCHEMA public TO ${POSTGRES_USER};"
@@ -163,7 +164,6 @@ local_docker_build:
 	$(MAKE) local_docker_update
 
 local_docker_update:
-#	docker compose -f local.yml run --rm django bash -c "python manage.py makemigrations && python manage.py migrate && python manage.py collectstatic --noinput"
 	docker compose -f local.yml run --rm django bash -c "python manage.py makemigrations && python manage.py migrate"
 
 
@@ -174,11 +174,13 @@ local_docker_down:
 	docker compose -f local.yml down
 
 local_docker_preseed:
-	docker compose -f local.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
+	docker compose -f local.yml run --rm django bash -c "find ./fixtures -name '*.json' -print0 | xargs -0 -r python manage.py loaddata"
 
 local_docker_createsuperuser:
 	docker compose -f local.yml run --rm django python manage.py createsuperuser
 
+local_docker_passwordhash:
+	docker compose -f local.yml run --rm django python manage.py passwordhash
 
 local_docker_cleanupall:
 	docker image prune -a
@@ -194,6 +196,9 @@ production_docker_build_images:
 	docker buildx ls 2>/dev/null | grep ci-project-builder >/dev/null || docker buildx create --name ci-project-builder --driver docker-container --bootstrap --use tls-environment
 	docker buildx use ci-project-builder
 	docker buildx bake --file docker-local_bake-production.hcl --progress=plain all
+
+production_docker_preseed:
+	docker compose -f production.yml run --rm django bash -c "find ./fixtures -name '*.json' ! -name 'dev_*' -print0 | xargs -0 -r python manage.py loaddata"
 
 
 ######################################################################
