@@ -85,6 +85,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     # Your stuff: custom apps go here
+    "backend_django.config.apps.ConfigApp",
     "backend_django.users.apps.UsersConfig",
     "backend_django.apps.backend_djangoConfig",
 

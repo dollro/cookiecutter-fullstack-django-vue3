@@ -36,9 +36,11 @@ WORKDIR /app
 FROM python:3.12-slim-bookworm AS main-stage
 
 ENV PYTHONUNBUFFERED 1
-ENV UNAME={{cookiecutter.project_slug}}
-ARG TARGETPLATFORM
 
+ENV UNAME=django
+ARG USER_ID=10000
+ARG GROUP_ID=10001
+ARG TARGETPLATFORM
 RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-get update \
   # dependencies for building Python packages
   && apt-get install -y build-essential curl \
@@ -72,7 +74,7 @@ RUN --mount=type=cache,id=pip-cache-$TARGETPLATFORM,target=/root/.cache/pip pip 
 #RUN addgroup --system django \
 #    && adduser --system --ingroup django django
 
-RUN export UNAME=$UNAME UID=1001 GID=1001 && \
+RUN export UNAME=$UNAME UID=${USER_ID} GID=${GROUP_ID} && \
     mkdir -p "/home/${UNAME}" && \
     echo "${UNAME}:x:${UID}:${GID}:${UNAME} User,,,:/home/${UNAME}:/bin/bash" >> /etc/passwd && \
     echo "${UNAME}:x:${UID}:" >> /etc/group && \
@@ -100,7 +102,7 @@ COPY --chown=$UNAME:$UNAME ./compose/production/django/celery/beat/start /start-
 RUN sed -i 's/\r$//g' /start-celerybeat
 RUN chmod +x /start-celerybeat
 
-COPY ./compose/production/django/celery/flower/start /start-flower
+COPY --chown=$UNAME:$UNAME ./compose/production/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 

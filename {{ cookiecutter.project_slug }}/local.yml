@@ -7,8 +7,12 @@ services:
     build:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
+      args:
+        # adapt that so that it matches the id of your local user on the host machine
+        # ensure that the user within docker container has access to the mounted local dir
+        USER_ID: 1000   
+        GROUP_ID: 1000
     image: {{cookiecutter.project_slug}}_local_django
-    #container_name: django
     depends_on:
       - postgres
       - mailhog

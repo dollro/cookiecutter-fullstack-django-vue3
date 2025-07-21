@@ -1,6 +1,8 @@
 import {createApp} from "vue";
 import axios from 'axios'
-// import { createPinia } from 'pinia'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
 // import Cookies from 'js-cookie';
 
 axios.defaults.xsrfHeaderName = "X-CSRFToken"
@@ -20,10 +22,14 @@ import i18n from '../i18n'
 export const createAppInEl = (options, selector) => {
     const app = createApp(options);
     app.use(i18n);
-    //app.use(createPinia());
+    
+    // Create and configure Pinia
+    const pinia = createPinia();
+    pinia.use(piniaPluginPersistedstate);
+    app.use(pinia);
+    
     //app.use(VueAxios, axios);
-    //app.use(BootstrapVueNext);
-    // app.config.globalProperties.$filters = filters;
+    //app.config.globalProperties.$filters = filters;
     app.mount(selector);
     return app;
 }

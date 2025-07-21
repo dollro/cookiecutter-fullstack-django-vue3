@@ -8,6 +8,12 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
+      args:
+        # you may adjust the UID/GID of the django user in the container
+        # for security reasons, we use very high number
+        # https://medium.com/@yeskay16/dockerfile-best-practices-bbdd7207036c
+        USER_ID: 10000   
+        GROUP_ID: 10001
     image: {{cookiecutter.project_slug}}_production_django
     depends_on:
       - postgres
