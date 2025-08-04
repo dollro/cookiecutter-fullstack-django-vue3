@@ -3,7 +3,7 @@
 USE_DOCKER=yes
 IPYTHONDIR=/app/.ipython
 DJANGO_SUPERUSER_USERNAME=admin
-DJANGO_SUPERUSER_EMAIL={{ cookiecutter.email }}
+DJANGO_SUPERUSER_EMAIL={{cookiecutter.email}}
 DJANGO_SUPERUSER_PASSWORD=7821vg21d99218hd2399hd929329
 
 # Logging and Debugging
@@ -23,10 +23,9 @@ DJANGO_ALLOWED_HOSTS=*
 # ------------------------------------------------------------------------------
 # TIP: better off using DNS, however, redirect is OK too
 DJANGO_SECURE_SSL_REDIRECT=False
-DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1,http://dummydomain.com,https://dummydomain.com
-# Email
+DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost,https://localhost,http://127.0.0.1,https://127.0.0.1,http://{{cookiecutter.domain_name}},https://{{cookiecutter.domain_name}}
 # ------------------------------------------------------------------------------
-DJANGO_SERVER_EMAIL=henry.ford@dummydomain.com
+DJANGO_SERVER_EMAIL={{cookiecutter.email}}
 
 
 # fill with your own settings !
@@ -72,7 +71,7 @@ POSTGRES_PASSWORD=tgdeXwur04BERVcqoBkRzfiAPYQGn1Ph9Z9llsbW1sEuYmG9XRksgZ6uUYqVf7
 
 # Environment variables for deploy.yml
 # ------------------------------------------------------------------------------
-DOCKER_REGISTRY={{ cookiecutter.docker_registry }}
+DOCKER_REGISTRY={{cookiecutter.docker_registry}}
 DOCKER_REGISTRY_USER=
 DOCKER_REGISTRY_PASS=
 

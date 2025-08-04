@@ -6,10 +6,12 @@
 
 {% block content %}
 <div id="home"></div>
-<h1>
-    Hello world from home.html (django template)!
-</h1>
- <div id="vue-hello"></div>
+        <h1 class="text-2xl mb-2 mt-4 elegant-title">
+         Hello world from home.html (django template)!
+        </h1>
+        <img class="object-center" src="{% static 'img/HelloWorldDjango.png' %}" />
+
+<div id="vue-hello"></div>
 <div id="vue-login-rest_auth"></div>
 
 {% comment "django login" %}

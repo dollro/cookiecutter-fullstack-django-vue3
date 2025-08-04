@@ -90,7 +90,3 @@ services:
       #- PROXY_TARGET=django:8000
       - NODE_ENV=production
 
-networks:
-  default:
-    name: {{cookiecutter.project_slug}}_network
-    driver: bridge

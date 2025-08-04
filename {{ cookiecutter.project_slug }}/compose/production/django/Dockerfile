@@ -14,7 +14,7 @@ RUN npm install -g pnpm
 COPY ./frontend_vue/package.json /app/frontend_vue/package.json
 #
 WORKDIR /app/frontend_vue
-RUN --mount=type=cache,id=pnpm-cache-$TARGETPLATFORM,target=$HOME/.local/share/pnpm/store/v3 pnpm install
+RUN --mount=type=cache,id=pnpm-cache-$TARGETPLATFORM,target=/root/.local/share/pnpm/store/v3 pnpm install
 #RUN pnpm install
 #&& npm cache clean --force
 #RUN npm --omit=optional install && npm cache clean --force
@@ -23,7 +23,10 @@ RUN npx browserslist@latest --update-db
 COPY . /app
 
 WORKDIR /app/frontend_vue
-RUN chown -R node:node /app/frontend_vue
+
+# no need to chown in production since we copy with --chown in main-stage
+#RUN chown -R node:node /app/frontend_vue  
+
 RUN pnpm run build -- --mode production
 RUN rm -rf node_modules src
 WORKDIR /app
@@ -35,7 +38,7 @@ WORKDIR /app
 ###################################
 FROM python:3.12-slim-bookworm AS main-stage
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 ENV UNAME=django
 ARG USER_ID=10000
@@ -85,24 +88,27 @@ RUN export UNAME=$UNAME UID=${USER_ID} GID=${GROUP_ID} && \
     gpasswd -a ${UNAME} audio
 
 
-COPY --chown=$UNAME:$UNAME ./compose/production/django/entrypoint /entrypoint
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/production/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/production/django/entrypoint.default /entrypoint.default
+RUN sed -i 's/\r$//g' /entrypoint.default
+RUN chmod +x /entrypoint.default
 
-COPY --chown=$UNAME:$UNAME ./compose/production/django/start /start
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
-COPY --chown=$UNAME:$UNAME ./compose/production/django/celery/worker/start /start-celeryworker
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/production/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker
 RUN chmod +x /start-celeryworker
 
-COPY --chown=$UNAME:$UNAME ./compose/production/django/celery/beat/start /start-celerybeat
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/production/django/celery/beat/start /start-celerybeat
 RUN sed -i 's/\r$//g' /start-celerybeat
 RUN chmod +x /start-celerybeat
 
-COPY --chown=$UNAME:$UNAME ./compose/production/django/celery/flower/start /start-flower
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/production/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 
@@ -110,7 +116,7 @@ RUN chmod +x /start-flower
 #COPY --chown=$UNAME:$UNAME . /app
 
 # Copy local app file with prebuild asset files from client-builder to image
-COPY --from=pre-stage --chown=$UNAME:$UNAME /app /app
+COPY --from=pre-stage --chown=${USER_ID}:${GROUP_ID} /app /app
 
 #COPY --from=vue-builder --chown=$UNAME:$UNAME /frontend_vue/webpack-stats.json /app/frontend_vue/webpack-stats.json
 #COPY --from=vue-builder --chown=$UNAME:$UNAME /backend_django/static/vue /app/backend_django/static/vue
@@ -119,7 +125,7 @@ COPY --from=pre-stage --chown=$UNAME:$UNAME /app /app
 WORKDIR /app
 #USER django
 USER ${UNAME}
-ENV HOME /home/${UNAME}
+ENV HOME=/home/${UNAME}
 
 
-ENTRYPOINT ["/entrypoint"]
+ENTRYPOINT ["/entrypoint.vite"]

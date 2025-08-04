@@ -8,7 +8,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 axios.defaults.xsrfHeaderName = "X-CSRFToken"
 axios.defaults.xsrfCookieName = 'csrftoken'
 axios.defaults.withCredentials = false
-axios.defaults.baseURL = "/api/v1/";
+axios.defaults.baseURL = import.meta.env.VITE_APP_API_ROOT
 
 //import VueAxios from 'vue-axios'
 //import BootstrapVueNext from 'bootstrap-vue-next'

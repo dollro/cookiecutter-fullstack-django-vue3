@@ -43,14 +43,15 @@ until postgres_ready; do
 done
 >&2 echo 'PostgreSQL is available'
 
-# Replace placeholder parameters in vue build-time environment by actual docker run-time environment variables
-ROOT_DIR=/app/backend_django/static/vue
+# Replace placeholder parameters in vite build-time environment by actual docker run-time environment variables
+# Note that this dir has to be set so that it matches the settings in frontend_vue/vite.config.js !!
+ROOT_DIR=/app/backend_django/static/vue/assets
 if [ -d "$ROOT_DIR" ]; then
     count=$(ls -1 $ROOT_DIR/*.js 2>/dev/null | wc -l)
     if [ $count != 0 ]; then
         for file in $ROOT_DIR/*.js*;
         do
-            # Your vue variables here...
+            # Your vite variables here...
         [ -z "${VITE_APP_STATIC_ROOT}" ] && echo "Entrypoint warning: VITE_APP_STATIC_ROOT environment variable is empty."
         sed -i 's|VITE_APP_STATIC_ROOT_PLACEHOLDER|'${VITE_APP_STATIC_ROOT}'|g' $file
 

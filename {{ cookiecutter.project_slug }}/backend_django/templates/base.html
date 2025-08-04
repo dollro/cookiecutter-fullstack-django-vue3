@@ -13,9 +13,6 @@
 
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}" />
-    <!-- Google fonts-->
-    <link href="https://fonts.googleapis.com/css?family=Merriweather:400,300,300italic,400italic,700,700italic" rel="stylesheet" type="text/css" />
-
     <!-- Here goes page-specific django based CSS -->
     {% block css %}
    
@@ -37,7 +34,6 @@
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
     {% vite_asset 'main.js' %}
     <!-- Finally, below go the django-template specific script files, if any -->
     {% block javascript %}

@@ -1,26 +1,17 @@
 <template>
-  <div class="text-center">
-      <p>
-        This cookiecutter im the techniques discussed in the
-        series of articles "Vue + Django: The Best of Both Frontends."
-      </p>
-      <p>
-        {{ $t('hello') }}
-      </p>
-      <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded
-               md:py-3 md:px-6 
-               lg:py-4 lg:px-8">
-  Click me
-</button>
-  </div>
-</template>
+  <h1 class="text-2xl mb-2 mt-4 elegant-title">
+    Hello World from Hello.vue !
+  </h1>
+  <img class="object-center" src="@/assets/img/HelloWorldVue.png" />
+</template> 
+
 
 <script>
   export default {
     name: 'Hello',
     data () {
       return {
-        staticRoot: import.meta.env.VITE_APP_STATIC_ROOT
+       
       }
     }
   }
@@ -32,34 +23,5 @@
     margin: 40px 0 0;
     font-style: italic;
   }
-  h3 {
-    margin: 40px 0 0;
-  }
-  ul.articles {
-    list-style-type: none;
-    padding: 0;
-    li {
-      display: inline-block;
-      margin: 0 10px;
-    }
-  }
-  .opt {
-    font-weight: bold;
-  }
-  p {
-    margin-top: 1.5em;
-    margin-bottom: .5em;
-  }
-  a {
-    color: #42b983;
-  }
-  .logo {
-    height: 150px;
-    margin-top: 25px;
-  }
-  .plus {
-    font-size: 44px;
-    padding-left: 10px;
-    padding-right: 20px;
-  }
+  
 </style>

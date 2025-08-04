@@ -4,14 +4,13 @@ import 'vite/modulepreload-polyfill';
 import {createAppInEl} from "./utils/create_app_utils";
 import Main from "./Main.vue"
 // import ManualControls from "./components/ManualControls.vue"
-// import Hello from "./components/Hello.vue"
+import Hello from "./components/Hello.vue"
 // import HelloI18n from "./components/HelloI18n.vue"
 import LoginRestAuth from './components/LoginRestAuth.vue';
 
 
 createAppInEl(Main, "#vue-main");
-//createAppInEl(ManualControls, "#vue-manualcontrols");
-//createAppInEl(Hello, "#vue-hello");
+createAppInEl(Hello, "#vue-hello");
 createAppInEl(LoginRestAuth, "#vue-login-rest_auth");
 
 

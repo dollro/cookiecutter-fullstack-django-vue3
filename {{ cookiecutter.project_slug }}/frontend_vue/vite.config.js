@@ -21,14 +21,18 @@ export default defineConfig({
   build: {
     outDir: '../../backend_django/static/vue/',
     manifest: true,
-    assetsDir: '',
+    // NOTE: dont change this assetsDir path setting "assets"!
+    // If so, check the script in the entrypoint of the django docker service so that it matches !!
+    assetsDir: 'assets',
     rollupOptions: {
       input: {
         main: resolve('./src/main.js'),
       },
       output: {
-        assetFileNames: fixAssetName,
-        chunkFileNames: undefined,
+        // NOTE: dont change this assetsDir path setting "assets"! 
+        // If so, check the script in the entrypoint of the django docker service so that it matches !!
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'assets/[name]-[hash].js',
       },
     },
   },
@@ -48,9 +52,9 @@ export default defineConfig({
   base: '/static/vue',
   root: resolve('./src'),
   server: {
-    host: '0.0.0.0',
-    port: 3000,
-    strictPort: true,
+    origin: "http://127.0.0.1:3000",
+    port: 3000, // must be a port other than 5173
+    host: true,
     watch: {
       usePolling: true,
       disableGlobbing: false,

@@ -3,11 +3,11 @@ FROM python:3.12-slim-bookworm
 ARG TARGETPLATFORM
 ARG BUILDKIT_INLINE_CACHE
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
 ARG USER_ID=1000
 ARG GROUP_ID=1000
-ENV UNAME django
+ENV UNAME=django
 #ENV UNAME ${USER}
 
 RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-get update \
@@ -55,28 +55,28 @@ RUN export UNAME=$UNAME UID=${USER_ID} GID=${GROUP_ID} && \
     chown ${UID}:${GID} -R /home/${UNAME} && \
     gpasswd -a ${UNAME} audio
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/entrypoint /entrypoint
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/start /start
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/worker/start /start-celeryworker
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker
 RUN chmod +x /start-celeryworker
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/beat/start /start-celerybeat
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/celery/beat/start /start-celerybeat
 RUN sed -i 's/\r$//g' /start-celerybeat
 RUN chmod +x /start-celerybeat
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/flower/start /start-flower
+COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 
 USER ${UNAME}
-ENV HOME /home/${UNAME}
+ENV HOME=/home/${UNAME}
 
 WORKDIR /app
 

@@ -6,7 +6,7 @@ NODE_ENV=production
 DJANGO_ALLOWED_HOSTS=localhost
 DJANGO_IS_TEST=True
 DJANGO_SUPERUSER_USERNAME=admin
-DJANGO_SUPERUSER_EMAIL={{ cookiecutter.email }}
+DJANGO_SUPERUSER_EMAIL={{cookiecutter.email}}
 DJANGO_SUPERUSER_PASSWORD=djangoadmin
 
 

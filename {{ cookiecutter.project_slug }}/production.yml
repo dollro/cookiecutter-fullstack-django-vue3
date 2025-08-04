@@ -20,8 +20,6 @@ services:
       - redis
     env_file:
       - ./.envs/.production/.django
-    devices:
-      - /dev/snd
     command: /start
     expose:
       - "5000"
@@ -80,10 +78,7 @@ services:
   #   image: {{cookiecutter.project_slug}}_production_flower
   #   command: /start-flower
 
-
-
-
-networks:
-  default:
-    name: {{cookiecutter.project_slug}}_network
-    driver: bridge
+#networks:
+  #  proxy:
+  #    external: true
+  #    name: proxy
