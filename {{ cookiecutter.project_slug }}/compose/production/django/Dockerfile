@@ -128,4 +128,4 @@ USER ${UNAME}
 ENV HOME=/home/${UNAME}
 
 
-ENTRYPOINT ["/entrypoint.vite"]
+ENTRYPOINT ["/entrypoint"]

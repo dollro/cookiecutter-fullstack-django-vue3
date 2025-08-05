@@ -29,9 +29,10 @@ DJANGO_SERVER_EMAIL={{cookiecutter.email}}
 
 
 # fill with your own settings !
-EMAIL_HOST=
-EMAIL_PORT=
-EMAIL_HOST_USER=
+EMAIL_HOST=smtp.example.com
+EMAIL_PORT=465
+EMAIL_HOST_USER=mail@example.com
+EMAIL_HOST_PASSWORD=foobar
 EMAIL_USE_TLS=
 EMAIL_USE_SSL=True
 EMAIL_TIMEOUT=30
