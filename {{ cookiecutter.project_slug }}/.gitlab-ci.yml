@@ -20,6 +20,13 @@ variables:
   # RELEASE_REGISTRY_USER     # eg. "username"
   # RELEASE_REGISTRY_PASSWORD # eg. "password"
 
+  ## Latest Tag Management (can be overridden in GitLab UI for manual control)
+  # UPDATE_LATEST_STRATEGY: "auto"   # Strategy for updating 'latest' tag (auto, force, skip)
+  #   - auto: Compare versions and update if newer (default)
+  #   - force: Always update 'latest' tag regardless of version
+  #   - skip: Never update 'latest' tag
+  # Default behavior: automatic semantic version comparison against current registry state
+
 
   ## Platform Build Control (can be overridden in GitLab UI)
   BUILD_AMD64: "true"   # Always enabled by default
@@ -118,6 +125,8 @@ variables:
   - export IMAGETAG=$CI_COMMIT_REF_SLUG
   - export BUILD_TARGET=production
   - if [ "$CI_COMMIT_BRANCH" == "staging" ]; then export BUILD_TARGET=staging; fi
+  # For tags, use CI_COMMIT_TAG to preserve version format (dots)
+  - if [ -n "$CI_COMMIT_TAG" ]; then export IMAGETAG=$CI_COMMIT_TAG; fi
 
 .buildx-setup-script: &buildx-setup-script
   - docker context ls 2>/dev/null | grep tls-environment >/dev/null || docker context create tls-environment
@@ -276,7 +285,6 @@ test:
     # TEST
     #
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm node-vue bash -c "pnpm --dir ./vue_frontend run build -- --mode production"
-    #- env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python manage.py migrate && python manage.py collectstatic --noinput"
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python manage.py migrate"
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run django pytest --junitxml=test_report.xml
@@ -294,7 +302,7 @@ build_images_for_deployment_amd64:
   rules:
     - if: >
         $BUILD_AMD64 == "true" && 
-        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master")
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging")
   # only:
   #   - staging
   #   - master
@@ -498,7 +506,7 @@ build_images_for_deployment_armhf:
   rules:
     - if: >
         ($BUILD_ARMHF == "true") &&
-        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev-e2c")
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "dev-e2c")
   script:
     # Choose the appropriate bake file based on BUILD_TARGET
     - |
@@ -531,7 +539,7 @@ build_images_for_deployment_arm64:
   rules:
     - if: >
         ($BUILD_ARM64 == "true") &&
-        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "dev-e2c")
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "dev-e2c")
   script:
     # Choose the appropriate bake file based on BUILD_TARGET
     - |
@@ -621,7 +629,7 @@ merge_manifests:
   stage: build_manifests
   extends: .dind-template
   rules:
-    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master")
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "dev-e2c")
   #ToDo: make the architecture list dynamic
   script:
     - chmod +x ./ci_merge_manifests.sh; ./ci_merge_manifests.sh
@@ -637,28 +645,41 @@ release_images:
   extends: .dind-template
   rules:
     - if: $CI_COMMIT_TAG != null
-    #=~ /^dev_[0-9]+\.[0-9]+$/
-    - if: $CI_COMMIT_BRANCH == "master"
   script:
     - |
       if [ -z "$RELEASE_REGISTRY" ]; then
         echo "Error: No release registry is set in variable RELEASE_REGISTRY"
         exit 1
       fi 
-    - export IMAGETAG=latest
-    - if [ $CI_COMMIT_TAG != null ]; then 
-      export IMAGETAG=$CI_COMMIT_TAG; fi
     - apk update
-    - apk add --no-cache curl
+    - apk add --no-cache curl git
     - curl -L https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 >regctl
     - chmod 755 regctl
     - echo "$RELEASE_REGISTRY_PASSWORD" | docker login -u $RELEASE_REGISTRY_USER --password-stdin $RELEASE_REGISTRY
+    - echo "🏷️ Releasing images with version tag:$IMAGETAG"
     - |
-      for SERVICE in django postgres traefik
+      for SERVICE in django postgres traefik mosquitto zigbee2mqtt
       do
+        echo "Releasing $SERVICE:$IMAGETAG..."
         ./regctl image copy $IMAGE_BASENAME-$SERVICE:$IMAGETAG $RELEASE_IMAGE_BASENAME-$SERVICE:$IMAGETAG
       done
-    
+    - echo "🤔 Checking if 'latest' tag should be updated..."
+    - chmod +x ./ci_latest_manager.sh
+    - UPDATE_LATEST=$(./ci_latest_manager.sh should_update_latest)
+    - echo "Decision UPDATE_LATEST=$UPDATE_LATEST"
+    - |
+      if [ "$UPDATE_LATEST" = "true" ]; then
+        echo "✅ Updating 'latest' tag to point to $IMAGETAG"
+        for SERVICE in django postgres traefik mosquitto zigbee2mqtt
+        do
+          echo "Updating $SERVICE:latest..."
+          ./regctl image copy $IMAGE_BASENAME-$SERVICE:$IMAGETAG $RELEASE_IMAGE_BASENAME-$SERVICE:latest
+        done
+        echo "🎉 Successfully updated 'latest' tag to $IMAGETAG"
+      else
+        echo "⏭️ Skipping 'latest' tag update (keeping existing latest)"
+      fi
+       
 
 
 # ##
