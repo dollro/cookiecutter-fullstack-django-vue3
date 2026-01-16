@@ -2,6 +2,7 @@ volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
   production_traefik: {}
+  production_media: {}
 
 services:
   django: &django
@@ -21,6 +22,8 @@ services:
     env_file:
       - ./.envs/.production/.django
     command: /start
+    volumes:
+      - production_media:/app/backend_django/media
     expose:
       - "5000"
     labels:
@@ -78,7 +81,8 @@ services:
   #   image: {{cookiecutter.project_slug}}_production_flower
   #   command: /start-flower
 
-#networks:
-  #  proxy:
-  #    external: true
-  #    name: proxy
+
+networks:
+  default:
+    name: {{cookiecutter.project_slug}}_network
+    driver: bridge

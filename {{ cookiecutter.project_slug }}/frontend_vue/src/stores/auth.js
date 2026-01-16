@@ -130,6 +130,13 @@ export const useAuthStore = defineStore('auth', () => {
 }, {
   persist: {
     key: 'auth',
-    paths: ['token', 'user']
+    paths: ['token', 'user'],
+    // Set auth header immediately after state is restored from localStorage
+    // This ensures the token is available before any component mounts
+    afterRestore: (ctx) => {
+      if (ctx.store.token) {
+        api.setAuthHeader(ctx.store.token)
+      }
+    }
   }
 })

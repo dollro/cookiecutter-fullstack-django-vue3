@@ -12,7 +12,7 @@ PRODUCTION_VENV_DIR := ${PRODUCTION_VENVS_DIR}/${PROJECT_NAME}
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR := $(dir $(MKFILE_PATH))
 FIXTURES := $(shell ls -A fixtures 2>/dev/null)
-DOCKERIMAGE_VERSION := $(shell git describe --tags)
+DOCKERIMAGE_VERSION := $(shell git describe --tags --always)
 
 ### LOCAL VENV for development
 local_venv_install:
@@ -23,7 +23,7 @@ local_venv_install:
 
 local_venv_sw_setup:
 	sudo apt update
-	sudo apt install -y postgresql-15 nodejs direnv ${PYTHON}-venv npm
+	sudo apt install -y postgresql-17 nodejs direnv ${PYTHON}-venv npm
 	sudo apt install -y libpq-dev
 	sudo apt install -y redis-server
 	sudo apt install -y libjpeg-dev zlib1g-dev
