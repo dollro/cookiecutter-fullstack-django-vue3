@@ -4,7 +4,7 @@
 
 # Define variables that will be passed from CI environment
 variable "IMAGE_BASENAME" {
-  default = "{{cookiecutter.project_slug}}"
+  default = ""
 }
 
 variable "IMAGETAG" {
@@ -34,10 +34,10 @@ target "postgres" {
   }
   tags = ["${IMAGE_BASENAME}-postgres:${IMAGETAG}-${PLATFORM_SLUG}"]
   cache-from = [
-    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-${IMAGETAG}-${PLATFORM_SLUG}"
+    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-latest-${PLATFORM_SLUG}"
   ]
   cache-to = [
-    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-${IMAGETAG}-${PLATFORM_SLUG},mode=max"
+    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-latest-${PLATFORM_SLUG},mode=max"
   ]
   output     = ["type=registry,push=true,oci-mediatypes=false"]
   provenance = false
@@ -54,10 +54,31 @@ target "traefik" {
   }
   tags = ["${IMAGE_BASENAME}-traefik:${IMAGETAG}-${PLATFORM_SLUG}"]
   cache-from = [
-    "type=registry,ref=${IMAGE_BASENAME}-traefik:cache-${IMAGETAG}-${PLATFORM_SLUG}"
+    "type=registry,ref=${IMAGE_BASENAME}-traefik:cache-latest-${PLATFORM_SLUG}"
   ]
   cache-to = [
-    "type=registry,ref=${IMAGE_BASENAME}-traefik:cache-${IMAGETAG}-${PLATFORM_SLUG},mode=max"
+    "type=registry,ref=${IMAGE_BASENAME}-traefik:cache-latest-${PLATFORM_SLUG},mode=max"
+  ]
+  output     = ["type=registry,push=true,oci-mediatypes=false"]
+  provenance = false
+}
+
+
+# Watchtower service
+target "watchtower" {
+  context    = "."
+  dockerfile = "compose/${BUILD_TARGET}/watchtower/Dockerfile"
+  platforms  = ["${PLATFORM}"]
+  pull       = true
+  args = {
+    BUILDKIT_INLINE_CACHE = "1"
+  }
+  tags = ["${IMAGE_BASENAME}-watchtower:${IMAGETAG}-${PLATFORM_SLUG}"]
+  cache-from = [
+    "type=registry,ref=${IMAGE_BASENAME}-watchtower:cache-latest-${PLATFORM_SLUG}"
+  ]
+  cache-to = [
+    "type=registry,ref=${IMAGE_BASENAME}-watchtower:cache-latest-${PLATFORM_SLUG},mode=max"
   ]
   output     = ["type=registry,push=true,oci-mediatypes=false"]
   provenance = false
@@ -72,13 +93,15 @@ target "django-pre-stage" {
   pull       = true
   args = {
     BUILDKIT_INLINE_CACHE = "0"
+    APP_VERSION = "${IMAGETAG}"
+    VITE_APP_VERSION = "${IMAGETAG}"
   }
   tags = ["${IMAGE_BASENAME}-django:${IMAGETAG}-pre-stage-${PLATFORM_SLUG}"]
   cache-from = [
-    "type=registry,ref=${IMAGE_BASENAME}-django:cache-${IMAGETAG}-pre-stage-${PLATFORM_SLUG}"
+    "type=registry,ref=${IMAGE_BASENAME}-django:cache-latest-pre-stage-${PLATFORM_SLUG}"
   ]
   cache-to = [
-    "type=registry,ref=${IMAGE_BASENAME}-django:cache-${IMAGETAG}-pre-stage-${PLATFORM_SLUG},mode=max"
+    "type=registry,ref=${IMAGE_BASENAME}-django:cache-latest-pre-stage-${PLATFORM_SLUG},mode=max"
   ]
   output     = ["type=registry,push=true,oci-mediatypes=false"]
   provenance = false
@@ -93,14 +116,15 @@ target "django" {
   pull       = true
   args = {
     BUILDKIT_INLINE_CACHE = "1"
+    APP_VERSION = "${IMAGETAG}"
   }
   tags = ["${IMAGE_BASENAME}-django:${IMAGETAG}-${PLATFORM_SLUG}"]
   cache-from = [
-    "type=registry,ref=${IMAGE_BASENAME}-django:cache-${IMAGETAG}-pre-stage-${PLATFORM_SLUG}",
-    "type=registry,ref=${IMAGE_BASENAME}-django:cache-${IMAGETAG}-${PLATFORM_SLUG}"
+    "type=registry,ref=${IMAGE_BASENAME}-django:cache-latest-pre-stage-${PLATFORM_SLUG}",
+    "type=registry,ref=${IMAGE_BASENAME}-django:cache-latest-${PLATFORM_SLUG}"
   ]
   cache-to = [
-    "type=registry,ref=${IMAGE_BASENAME}-django:cache-${IMAGETAG}-${PLATFORM_SLUG},mode=max"
+    "type=registry,ref=${IMAGE_BASENAME}-django:cache-latest-${PLATFORM_SLUG},mode=max"
   ]
   output     = ["type=registry,push=true,oci-mediatypes=false"]
   provenance = false
@@ -110,7 +134,7 @@ target "django" {
 
 # Group target to build all single-stage services in parallel
 group "single-stage" {
-  targets = ["postgres", "traefik"]
+  targets = ["postgres", "traefik", "watchtower"]
 }
 
 # Group target to build multi-stage services (Django with dependencies)
@@ -120,5 +144,5 @@ group "multi-stage" {
 
 # Group target to build everything
 group "all" {
-  targets = ["postgres", "traefik", "django-pre-stage", "django"]
+  targets = ["watchtower", "postgres", "traefik", "django-pre-stage", "django"]
 }

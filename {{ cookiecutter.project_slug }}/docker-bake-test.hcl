@@ -38,13 +38,13 @@ target "django-local" {
   }
   tags = ["${IMAGE_BASENAME}-django:${IMAGETAG}"]
   cache-from = [
+    "type=registry,ref=${IMAGE_BASENAME}-django:cache-latest",
     "type=registry,ref=${IMAGE_BASENAME}-django:cache-${IMAGETAG}",
     "type=registry,ref=${IMAGE_BASENAME}-django:cache-develop",
-    "type=registry,ref=${IMAGE_BASENAME}-django:cache-master",
     "type=registry,ref=${IMAGE_BASENAME}-django:cache-staging"
   ]
   cache-to = [
-    "type=registry,ref=${IMAGE_BASENAME}-django:cache-${IMAGETAG},mode=max"
+    "type=registry,ref=${IMAGE_BASENAME}-django:cache-latest,mode=max"
   ]
   output     = ["type=registry,push=true,oci-mediatypes=false"]
   provenance = false
@@ -61,13 +61,13 @@ target "postgres-production" {
   }
   tags = ["${IMAGE_BASENAME}-postgres:${IMAGETAG}"]
   cache-from = [
+    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-latest",
     "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-${IMAGETAG}",
     "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-develop",
-    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-master",
     "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-staging"
   ]
   cache-to = [
-    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-${IMAGETAG},mode=max"
+    "type=registry,ref=${IMAGE_BASENAME}-postgres:cache-latest,mode=max"
   ]
   output     = ["type=registry,push=true,oci-mediatypes=false"]
   provenance = false
@@ -84,13 +84,13 @@ target "node-vue-local" {
   }
   tags = ["${IMAGE_BASENAME}-node-vue:${IMAGETAG}"]
   cache-from = [
+    "type=registry,ref=${IMAGE_BASENAME}-node-vue:cache-latest",
     "type=registry,ref=${IMAGE_BASENAME}-node-vue:cache-${IMAGETAG}",
     "type=registry,ref=${IMAGE_BASENAME}-node-vue:cache-develop",
-    "type=registry,ref=${IMAGE_BASENAME}-node-vue:cache-master",
     "type=registry,ref=${IMAGE_BASENAME}-node-vue:cache-staging"
   ]
   cache-to = [
-    "type=registry,ref=${IMAGE_BASENAME}-node-vue:cache-${IMAGETAG},mode=max"
+    "type=registry,ref=${IMAGE_BASENAME}-node-vue:cache-latest,mode=max"
   ]
   output     = ["type=registry,push=true,oci-mediatypes=false"]
   provenance = false

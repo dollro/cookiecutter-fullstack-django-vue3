@@ -23,18 +23,34 @@ variables:
   ## Latest Tag Management (can be overridden in GitLab UI for manual control)
   # UPDATE_LATEST_STRATEGY: "auto"   # Strategy for updating 'latest' tag (auto, force, skip)
   #   - auto: Compare versions and update if newer (default)
-  #   - force: Always update 'latest' tag regardless of version
+  #           Only annotated tags can update 'latest' in auto mode
+  #   - force: Always update 'latest' tag regardless of version or tag type
   #   - skip: Never update 'latest' tag
   # Default behavior: automatic semantic version comparison against current registry state
-
-
+  #
+  # TAG TYPE BEHAVIOR:
+  #   - ANNOTATED TAGS (git tag -a): Can update 'latest' tag (official releases)
+  #   - LIGHTWEIGHT TAGS (git tag): Cannot update 'latest' tag (internal/alpha releases)
+  #
+  # RELEASE WORKFLOW EXAMPLES:
+  #   Internal/Alpha Release:
+  #     git tag 1.8.7alpha
+  #     git push origin 1.8.7alpha
+  #     → Images built and pushed with version tag
+  #     → 'latest' tag NOT updated
+  #
+  #   Official Release:
+  #     git tag -a 1.8.7 -m "Release v1.8.7 - Features and fixes"
+  #     git push origin 1.8.7
+  #     → Images built and pushed with version tag
+  #     → 'latest' tag UPDATED (if version is newer)
   ## Platform Build Control (can be overridden in GitLab UI)
   BUILD_AMD64: "true"   # Always enabled by default
   BUILD_ARMHF: "false"   # Disabled by default
-  BUILD_ARM64: "true"   # Disabled by default
+  BUILD_ARM64: "false"   # Disabled by default
 
   # ARM Build Strategy Control
-  E2C_USAGE: "true"  # Default: use proven E2C remote builds
+  E2C_USAGE: "false"  # Default: use proven E2C remote builds
   # E2C Instance Strategy Control (REQUIRED when E2C_USAGE=true):
   # E2C_INSTANCE_STRATEGY: "existing"   # Use existing instance approach
   # E2C_INSTANCE_STRATEGY: "template"   # Use template-based instance approach
@@ -214,13 +230,13 @@ precommit:
     - amd64
   rules:
     - if: >
-        $CI_COMMIT_BRANCH != "dev-e2c" && 
-        ( $CI_COMMIT_BRANCH =~ /^issue-.*$/m ||
-        $CI_COMMIT_BRANCH =~ /^feature-.*$/ ||
-        $CI_COMMIT_BRANCH =~ /^dev-.*$/ ||
+        ( $CI_COMMIT_BRANCH =~ /^([0-9]+-)?fix.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?feat.*$/ ||
+        $CI_COMMIT_BRANCH =~ /([0-9]+-)?test.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?chore.*$/ ||
         $CI_COMMIT_BRANCH == "develop" ||
         $CI_COMMIT_BRANCH == "staging" ||
-        $CI_COMMIT_BRANCH == "master" )
+        $CI_COMMIT_BRANCH == "main" )
   # except:
   #   - debug-ci
   #   - tags
@@ -284,7 +300,7 @@ test:
     #
     # TEST
     #
-    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm node-vue bash -c "pnpm --dir ./vue_frontend run build -- --mode production"
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm node-vue bash -c "pnpm --dir ./frontend_vue run build -- --mode production"
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python manage.py migrate"
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run django pytest --junitxml=test_report.xml
@@ -629,7 +645,7 @@ merge_manifests:
   stage: build_manifests
   extends: .dind-template
   rules:
-    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "dev-e2c")
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging")
   #ToDo: make the architecture list dynamic
   script:
     - chmod +x ./ci_merge_manifests.sh; ./ci_merge_manifests.sh
@@ -650,18 +666,27 @@ release_images:
       if [ -z "$RELEASE_REGISTRY" ]; then
         echo "Error: No release registry is set in variable RELEASE_REGISTRY"
         exit 1
-      fi 
+      fi
     - apk update
     - apk add --no-cache curl git
+    - git fetch --tags --force  # Fetch tag information to check if annotated
+    - |
+      # Check tag type early for logging
+      if git cat-file -t "refs/tags/$CI_COMMIT_TAG" 2>/dev/null | grep -q "^tag$"; then
+        echo "🏷️ Processing ANNOTATED tag: $CI_COMMIT_TAG (official release)"
+      else
+        echo "📝 Processing LIGHTWEIGHT tag: $CI_COMMIT_TAG (internal/alpha release)"
+      fi
+
     - curl -L https://github.com/regclient/regclient/releases/latest/download/regctl-linux-amd64 >regctl
     - chmod 755 regctl
     - echo "$RELEASE_REGISTRY_PASSWORD" | docker login -u $RELEASE_REGISTRY_USER --password-stdin $RELEASE_REGISTRY
-    - echo "🏷️ Releasing images with version tag:$IMAGETAG"
+    - echo "Releasing images with version tag $IMAGETAG"
     - |
-      for SERVICE in django postgres traefik mosquitto zigbee2mqtt
+      for SERVICE in django postgres traefik watchtower
       do
-        echo "Releasing $SERVICE:$IMAGETAG..."
-        ./regctl image copy $IMAGE_BASENAME-$SERVICE:$IMAGETAG $RELEASE_IMAGE_BASENAME-$SERVICE:$IMAGETAG
+        echo "Releasing $SERVICE:$CI_COMMIT_TAG..."
+        ./regctl image copy $IMAGE_BASENAME-$SERVICE:$CI_COMMIT_TAG $RELEASE_IMAGE_BASENAME-$SERVICE:$CI_COMMIT_TAG
       done
     - echo "🤔 Checking if 'latest' tag should be updated..."
     - chmod +x ./ci_latest_manager.sh
@@ -669,13 +694,13 @@ release_images:
     - echo "Decision UPDATE_LATEST=$UPDATE_LATEST"
     - |
       if [ "$UPDATE_LATEST" = "true" ]; then
-        echo "✅ Updating 'latest' tag to point to $IMAGETAG"
-        for SERVICE in django postgres traefik mosquitto zigbee2mqtt
+        echo "✅ Updating 'latest' tag to point to $CI_COMMIT_TAG"
+        for SERVICE in django postgres traefik watchtower
         do
           echo "Updating $SERVICE:latest..."
-          ./regctl image copy $IMAGE_BASENAME-$SERVICE:$IMAGETAG $RELEASE_IMAGE_BASENAME-$SERVICE:latest
+          ./regctl image copy $IMAGE_BASENAME-$SERVICE:$CI_COMMIT_TAG $RELEASE_IMAGE_BASENAME-$SERVICE:latest
         done
-        echo "🎉 Successfully updated 'latest' tag to $IMAGETAG"
+        echo "🎉 Successfully updated 'latest' tag to $CI_COMMIT_TAG"
       else
         echo "⏭️ Skipping 'latest' tag update (keeping existing latest)"
       fi

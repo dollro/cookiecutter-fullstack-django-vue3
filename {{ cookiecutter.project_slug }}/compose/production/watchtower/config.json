@@ -1,0 +1,7 @@
+{
+	"auths": {
+		"{{cookiecutter.docker_registry}}": {
+			"auth": "BASE64_ENCODED_USERNAME_COLON_PASSWORD"
+		}
+	}
+}

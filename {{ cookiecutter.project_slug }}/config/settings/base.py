@@ -10,6 +10,17 @@ ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = ROOT_DIR / "backend_django"
 env = environ.Env()
 
+# APP_VERSION - read from VERSION.txt (created during Docker build) or fall back to env/default
+try:
+    version_file = ROOT_DIR / "VERSION.txt"
+    if version_file.exists():
+        with open(version_file, "r") as f:
+            APP_VERSION = f.read().strip()
+    else:
+        APP_VERSION = env.str("APP_VERSION", default="development")
+except Exception:
+    APP_VERSION = env.str("APP_VERSION", default="development")
+
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
@@ -383,6 +394,9 @@ if DJANGO_LOGFILE:
         "maxBytes": 1024 * 1024 * 10,  # 10 mb
     }
 
+# APP_ENVIRONMENT - derived from DJANGO_SETTINGS_MODULE (e.g., "config.settings.production" -> "production")
+_settings_module = os.getenv("DJANGO_SETTINGS_MODULE", ".undefined")
+APP_ENVIRONMENT = _settings_module.split(".")[-1]
 
 # Celery
 # ------------------------------------------------------------------------------

@@ -9,8 +9,3 @@ include = ["docker-bake-production.hcl"]
 variable "BUILD_TARGET" {
   default = "staging"
 }
-# Override the default IMAGE_BASENAME for staging
-variable "IMAGE_BASENAME" {
-  default = "{{cookiecutter.project_slug}}_staging"
-}
-

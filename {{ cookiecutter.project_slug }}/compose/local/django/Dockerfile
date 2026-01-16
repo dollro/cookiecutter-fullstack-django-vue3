@@ -3,11 +3,11 @@ FROM python:3.12-slim-bookworm
 ARG TARGETPLATFORM
 ARG BUILDKIT_INLINE_CACHE
 
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
 ARG USER_ID=1000
 ARG GROUP_ID=1000
-ENV UNAME=django
+ENV UNAME django
 #ENV UNAME ${USER}
 
 RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-get update \
@@ -21,28 +21,27 @@ RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-ge
   && apt-get install -y libjpeg-dev zlib1g zlib1g-dev  \
   # App-specific dependencies
   #
-  #
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
-# copy pip configuration containing extra repos for raspberry pi wheels --> much faster build on linux/arm/v7 architecture
-# Only needed if we build for linux/arm/v7 architecture, ie. delete it otherwise
-COPY ./compose/production/django/pip.conf /etc/pip.conf
-RUN if [ "${TARGETPLATFORM}" != "linux/arm/v7" ] ; then rm /etc/pip.conf; fi
+# now install Python modules via uv rather than pip
+# 1. Copy the uv binary
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# Requirements are installed here to ensure they will be cached.
+# 2. Copy requirements
 COPY ./requirements /requirements
-RUN python -m pip install --upgrade pip
 
-# RUN sh -c 'curl https://sh.rustup.rs -sSf > ./install-rustup.sh'
-# RUN chmod +x ./install-rustup.sh
-# RUN ./install-rustup.sh -y
+# 3. Install dependencies
+# - We use --mount=type=cache to speed up re-builds
+# - We conditionally set the extra index URL (assuming it is piwheels) only for ARMv7
+# - We use --system to install into the container's global Python environment
+RUN --mount=type=cache,id=pip-cache-$TARGETPLATFORM,target=/root/.cache/uv  \
+    if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
+        export UV_EXTRA_INDEX_URL="https://www.piwheels.org/simple"; \
+    fi && \
+    uv pip install --system -r /requirements/local.txt
 
-# RUN export CRYPTOGRAPHY_DONT_BUILD_RUST=1 \
-#   && pip install -r /requirements/local.txt
-
-RUN --mount=type=cache,id=pip-cache-$TARGETPLATFORM,target=/root/.cache/pip pip install -r /requirements/local.txt
 
 # Setup Users and Groups
 RUN export UNAME=$UNAME UID=${USER_ID} GID=${GROUP_ID} && \
@@ -55,28 +54,28 @@ RUN export UNAME=$UNAME UID=${USER_ID} GID=${GROUP_ID} && \
     chown ${UID}:${GID} -R /home/${UNAME} && \
     gpasswd -a ${UNAME} audio
 
-COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/entrypoint /entrypoint
+COPY --chown=$UNAME:$UNAME ./compose/local/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
-COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/start /start
+COPY --chown=$UNAME:$UNAME ./compose/local/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
-COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/celery/worker/start /start-celeryworker
+COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker
 RUN chmod +x /start-celeryworker
 
-COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/celery/beat/start /start-celerybeat
+COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/beat/start /start-celerybeat
 RUN sed -i 's/\r$//g' /start-celerybeat
 RUN chmod +x /start-celerybeat
 
-COPY --chown=${USER_ID}:${GROUP_ID} ./compose/local/django/celery/flower/start /start-flower
+COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 
 USER ${UNAME}
-ENV HOME=/home/${UNAME}
+ENV HOME /home/${UNAME}
 
 WORKDIR /app
 

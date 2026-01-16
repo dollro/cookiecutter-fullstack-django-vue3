@@ -1,36 +1,33 @@
 ## this docker compose file for deployment needs these environment variables set:
 ##
 ## DOCKER_REGISTRY       # e.g. {{ cookiecutter.docker_registry }}   # the docker registry (project used)
-## DOCKER_REGISTRY_USER  # e.g. {{cookiecutter.project_slug}}                         # the login user for the docker pull
-## DOCKER_REGISTRY_PASS  # e.g. {{cookiecutter.project_slug}}                         # the login password for the docker pull
-## DEPLOYMENT_TARGET     # e.g. asparuha
 
 volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
   production_traefik: {}
   production_portainer_data: {}
+  production_media: {}
 
 services:
   # auto-update images via watchtower
   watchtower:
-    image: containrrr/watchtower
+    image: ${DOCKER_REGISTRY}/{{cookiecutter.project_slug}}-watchtower:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - REPO_USER=${DOCKER_REGISTRY_USER}
-      - REPO_PASS=${DOCKER_REGISTRY_PASS}
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_INCLUDE_RESTARTING=true
-      - WATCHTOWER_POLL_INTERVAL=7200
+      - WATCHTOWER_POLL_INTERVAL=300
       - WATCHTOWER_SCOPE={{cookiecutter.project_slug}}_scope
     env_file:
       - ./.envs/.production/.django
-      - ./.envs/.production/.django.${DEPLOYMENT_TARGET}
     depends_on:
       - django
     labels:
       - com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope
+    networks:
+      - default
 
 
   django: &django
@@ -41,10 +38,9 @@ services:
       - redis
     env_file:
       - ./.envs/.production/.django
-      - ./.envs/.production/.django.${DEPLOYMENT_TARGET}
-    devices:
-      - /dev/snd
     command: /start
+    volumes:
+      - production_media:/app/backend_django/media
     expose:
       - "5000"
     labels:
@@ -65,9 +61,10 @@ services:
       - production_postgres_data_backups:/backups:z
     env_file:
       - ./.envs/.production/.django
-      - ./.envs/.production/.django.${DEPLOYMENT_TARGET}
     labels:
       - com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope
+    networks:
+      - default
 
   traefik:
     image: ${DOCKER_REGISTRY}/{{cookiecutter.project_slug}}-traefik:latest
@@ -90,17 +87,25 @@ services:
     restart: always
     # labels:
     #   - "com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope"
+    networks:
+      - default
 
   celeryworker:
     <<: *django
     command: /start-celeryworker
     restart: always
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope"
 
 
   celerybeat:
     <<: *django
     command: /start-celerybeat
     restart: always
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.scope={{cookiecutter.project_slug}}_scope"
 
 
   # flower:
