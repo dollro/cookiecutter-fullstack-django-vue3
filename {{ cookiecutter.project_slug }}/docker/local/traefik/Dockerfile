@@ -3,8 +3,8 @@ RUN mkdir -p /etc/traefik/acme \
   && touch /etc/traefik/acme/acme.json \
   && chmod 600 /etc/traefik/acme/acme.json
 
-COPY ./compose/local/traefik/traefik.yml /etc/traefik
-COPY ./compose/local/traefik/traefik-dynamic-conf.yml /etc/traefik
+COPY ./docker/local/traefik/traefik.yml /etc/traefik
+COPY ./docker/local/traefik/traefik-dynamic-conf.yml /etc/traefik
 
 ############################
 # mkcert
@@ -25,7 +25,7 @@ RUN chmod 755 /usr/local/bin/mkcert
 
 
 # custom entry point to generate the certs before traefik gets started
-COPY ./compose/production/traefik/custom-entrypoint /custom-entrypoint
+COPY ./docker/production/traefik/custom-entrypoint /custom-entrypoint
 RUN chmod +x /custom-entrypoint
 
 #ENTRYPOINT ["/custom-entrypoint"]

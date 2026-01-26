@@ -106,8 +106,8 @@ make local_docker_update      # Run migrations
 make local_docker_createsuperuser  # Create admin
 
 # Django Management
-docker compose -f local.yml run --rm django python manage.py <command>
-docker compose -f local.yml run --rm django python manage.py shell
+docker compose -f local.yml run --rm django python backend_django/manage.py <command>
+docker compose -f local.yml run --rm django python backend_django/manage.py shell
 docker compose -f local.yml run --rm django pytest
 
 # Logs
@@ -131,32 +131,36 @@ After generation, your project will have:
 
 ```
 your_project/
-├── backend_django/          # Django application
+├── backend_django/          # Self-contained Django project
+│   ├── config/              # Django project settings
+│   │   ├── settings/        # Environment-specific settings
+│   │   │   ├── base.py      # Shared settings
+│   │   │   ├── local.py     # Development
+│   │   │   ├── production.py # Production
+│   │   │   └── test.py      # Testing
+│   │   ├── celery_app.py    # Celery configuration
+│   │   └── urls.py          # URL routing
 │   ├── api/                 # REST API (views, serializers, urls)
 │   ├── users/               # User management app
 │   │   ├── api/             # User API endpoints
 │   │   └── models.py        # Custom User model
-│   ├── config/              # Site configuration app
+│   ├── site_config/         # Site configuration app (SetupFlag model)
+│   ├── requirements/        # Python dependencies
+│   ├── fixtures/            # Django fixtures
+│   ├── manage.py            # Django management script
 │   ├── models.py            # Database models
 │   ├── tasks.py             # Celery tasks
 │   ├── static/              # Static files (+ built Vue assets)
 │   └── templates/           # Django templates
-├── frontend_vue/            # Vue.js frontend
+├── frontend_vue/            # Self-contained Vue.js frontend
 │   ├── src/
 │   │   ├── components/      # Vue components
 │   │   ├── stores/          # Pinia state management
 │   │   └── rest/rest.js     # Centralized API module
 │   ├── vite.config.js       # Vite configuration
+│   ├── .prettierrc          # Prettier configuration
 │   └── package.json
-├── config/                  # Django settings
-│   ├── settings/
-│   │   ├── base.py          # Shared settings
-│   │   ├── local.py         # Development
-│   │   ├── production.py    # Production
-│   │   └── test.py          # Testing
-│   ├── celery_app.py        # Celery configuration
-│   └── urls.py              # URL routing
-├── compose/                 # Docker configurations
+├── docker/                  # Docker configurations
 │   ├── local/               # Development Dockerfiles
 │   └── production/          # Production Dockerfiles
 ├── .envs/                   # Environment files (gitignored)

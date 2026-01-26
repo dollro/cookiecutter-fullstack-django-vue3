@@ -14,7 +14,7 @@ RUN npx browserslist@latest --update-db
 #&& npm cache clean --force
 WORKDIR /app
 
-COPY ./compose/local/node-vue/start-vue /start-vue
+COPY ./docker/local/node-vue/start-vue /start-vue
 RUN sed -i 's/\r$//g' /start-vue
 RUN chmod +x /start-vue
 

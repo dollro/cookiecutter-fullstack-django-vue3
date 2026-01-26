@@ -5,8 +5,9 @@ from pathlib import Path
 import os
 import environ
 
-ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# backend_django/
+# ROOT_DIR points to project root (parent of backend_django)
+ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent.parent
+# APPS_DIR points to backend_django directory
 APPS_DIR = ROOT_DIR / "backend_django"
 env = environ.Env()
 
@@ -62,9 +63,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # URLS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
-ROOT_URLCONF = "config.urls"
+ROOT_URLCONF = "backend_django.config.urls"
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
-WSGI_APPLICATION = "config.wsgi.application"
+WSGI_APPLICATION = "backend_django.config.wsgi.application"
 
 # APPS
 # ------------------------------------------------------------------------------
@@ -96,7 +97,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     # Your stuff: custom apps go here
-    "backend_django.config.apps.ConfigApp",
+    "backend_django.site_config.apps.ConfigApp",
     "backend_django.users.apps.UsersConfig",
     "backend_django.apps.backend_djangoConfig",
 

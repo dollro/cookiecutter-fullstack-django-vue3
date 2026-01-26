@@ -301,8 +301,8 @@ test:
     # TEST
     #
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm node-vue bash -c "pnpm --dir ./frontend_vue run build -- --mode production"
-    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python manage.py migrate"
-    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python backend_django/manage.py migrate"
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python backend_django/manage.py loaddata backend_django/fixtures/*.json; fi"
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run django pytest --junitxml=test_report.xml
   artifacts:
     when: always
@@ -734,8 +734,8 @@ release_images:
 #     - echo "$CI_REGISTRY_PASSWORD" | docker --context remote login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
 #     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml down --remove-orphans || true
 #     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml pull
-#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml run --rm django bash -c "python manage.py migrate"
-#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml run --rm django bash -c "python backend_django/manage.py migrate"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python backend_django/manage.py loaddata backend_django/fixtures/*.json; fi"
 #     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f staging-ci-deploy.yml up -d
 
 # deploy_production:
@@ -760,8 +760,8 @@ release_images:
 #     - echo "$CI_REGISTRY_PASSWORD" | docker --context remote login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
 #     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml down --remove-orphans || true
 #     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml pull
-#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml run --rm django bash -c "python manage.py migrate"
-#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python manage.py loaddata fixtures/*.json; fi"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml run --rm django bash -c "python backend_django/manage.py migrate"
+#     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python backend_django/manage.py loaddata backend_django/fixtures/*.json; fi"
 #     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker --context remote compose -f production-ci-deploy.yml up -d
       
 

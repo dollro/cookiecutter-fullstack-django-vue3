@@ -7,7 +7,7 @@ services:
   django: &django
     # build:
     #   context: .
-    #   dockerfile: ./compose/local/django/Dockerfile
+    #   dockerfile: ./docker/local/django/Dockerfile
     image: "${IMAGE_BASENAME}-django:${IMAGETAG}"
     container_name: django
     depends_on:
@@ -24,7 +24,7 @@ services:
   postgres:
     # build:
     #   context: .
-    #   dockerfile: ./compose/production/postgres/Dockerfile
+    #   dockerfile: ./docker/production/postgres/Dockerfile
     image: "${IMAGE_BASENAME}-postgres:${IMAGETAG}"
     container_name: postgres
     volumes:
@@ -72,7 +72,7 @@ services:
     node-vue:
     #build:
     #  context: .
-    #  dockerfile: ./compose/local/node-vue/Dockerfile
+    #  dockerfile: ./docker/local/node-vue/Dockerfile
     #image: node-vue
     image: "${IMAGE_BASENAME}-node-vue:${IMAGETAG}"
     container_name: node-vue

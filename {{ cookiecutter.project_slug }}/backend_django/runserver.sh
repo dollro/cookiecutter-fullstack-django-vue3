@@ -45,8 +45,8 @@ if [ "$run" = "django" ] || [ "$run" = "all" ] ; then
 		fi
 
 		#Start local django development server, and wait until it is manually stopped
-		python manage.py runserver_plus --cert-file cert/cert.pem --key-file cert/key.pem 127.0.0.1:8000 --nothreading
-		#python manage.py runserver 127.0.0.1:8000 --nothreading
+		python backend_django/manage.py runserver_plus --cert-file cert/cert.pem --key-file cert/key.pem 127.0.0.1:8000 --nothreading
+		#python backend_django/manage.py runserver 127.0.0.1:8000 --nothreading
 
 		echo ""
 		echo ""

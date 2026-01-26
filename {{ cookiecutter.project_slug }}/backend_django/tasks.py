@@ -1,6 +1,6 @@
 from logging import debug
 from re import X
-from config import celery_app
+from backend_django.config import celery_app
 from celery import shared_task, Task
 from celery.utils.log import get_task_logger
 from celery.signals import task_revoked

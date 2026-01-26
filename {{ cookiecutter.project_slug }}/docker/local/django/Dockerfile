@@ -30,7 +30,7 @@ RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-ge
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 # 2. Copy requirements
-COPY ./requirements /requirements
+COPY ./backend_django/requirements /requirements
 
 # 3. Install dependencies
 # - We use --mount=type=cache to speed up re-builds
@@ -54,23 +54,23 @@ RUN export UNAME=$UNAME UID=${USER_ID} GID=${GROUP_ID} && \
     chown ${UID}:${GID} -R /home/${UNAME} && \
     gpasswd -a ${UNAME} audio
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/entrypoint /entrypoint
+COPY --chown=$UNAME:$UNAME ./docker/local/django/entrypoint /entrypoint
 RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/start /start
+COPY --chown=$UNAME:$UNAME ./docker/local/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/worker/start /start-celeryworker
+COPY --chown=$UNAME:$UNAME ./docker/local/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker
 RUN chmod +x /start-celeryworker
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/beat/start /start-celerybeat
+COPY --chown=$UNAME:$UNAME ./docker/local/django/celery/beat/start /start-celerybeat
 RUN sed -i 's/\r$//g' /start-celerybeat
 RUN chmod +x /start-celerybeat
 
-COPY --chown=$UNAME:$UNAME ./compose/local/django/celery/flower/start /start-flower
+COPY --chown=$UNAME:$UNAME ./docker/local/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
 

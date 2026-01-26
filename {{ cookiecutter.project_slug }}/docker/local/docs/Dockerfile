@@ -21,7 +21,7 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./compose/production/django/pip.conf /etc/pip.conf
+COPY ./docker/production/django/pip.conf /etc/pip.conf
 RUN if [ "${TARGETPLATFORM}" != "linux/arm/v7" ] ; then rm /etc/pip.conf; fi
 
 # Requirements are installed here to ensure they will be cached.

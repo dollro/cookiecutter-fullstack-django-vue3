@@ -11,7 +11,7 @@ LOCAL_VENV_DIR := ${LOCAL_VENVS_DIR}/${PROJECT_NAME}
 PRODUCTION_VENV_DIR := ${PRODUCTION_VENVS_DIR}/${PROJECT_NAME}
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR := $(dir $(MKFILE_PATH))
-FIXTURES := $(shell ls -A fixtures 2>/dev/null)
+FIXTURES := $(shell ls -A backend_django/fixtures 2>/dev/null)
 DOCKERIMAGE_VERSION := $(shell git describe --tags --always)
 
 ### LOCAL VENV for development
@@ -37,7 +37,7 @@ local_venv_sw_setup:
 	${PYTHON} -m venv ${LOCAL_VENV_DIR}
 	@( \
 		source ${LOCAL_VENV_DIR}/bin/activate; \
-		pip install -r requirements/local.txt; \
+		pip install -r backend_django/requirements/local.txt; \
 		if [ -d .git ]; then pre-commit install; else echo "pre-commit not installed since no git repository"; fi;\
     )
 	sudo npm install -g pnpm
@@ -58,15 +58,15 @@ local_venv_db_setup:
 local_venv_db_migrate:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
-	${LOCAL_VENV_DIR}/bin/${PYTHON} manage.py makemigrations
-	${LOCAL_VENV_DIR}/bin/${PYTHON} manage.py migrate
+	${LOCAL_VENV_DIR}/bin/${PYTHON} backend_django/manage.py makemigrations
+	${LOCAL_VENV_DIR}/bin/${PYTHON} backend_django/manage.py migrate
 
 local_venv_db_preseed:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
 	@if [ -n "${FIXTURES}" ]; then \
 	  echo "Importing fixtures..."; \
-		${LOCAL_VENV_DIR}/bin/${PYTHON} manage.py loaddata fixtures/*.json; \
+		${LOCAL_VENV_DIR}/bin/${PYTHON} backend_django/manage.py loaddata backend_django/fixtures/*.json; \
 		fi
 
 local_venv_db_delete:
@@ -77,14 +77,14 @@ local_venv_db_delete:
 local_venv_db_flush:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
-	${LOCAL_VENV_DIR}/bin/${PYTHON} manage.py clear_cache
-	${LOCAL_VENV_DIR}/bin/${PYTHON} manage.py flush
+	${LOCAL_VENV_DIR}/bin/${PYTHON} backend_django/manage.py clear_cache
+	${LOCAL_VENV_DIR}/bin/${PYTHON} backend_django/manage.py flush
 
 
 local_venv_createsuperuser:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
-	${LOCAL_VENV_DIR}/bin/${PYTHON} manage.py createsuperuser
+	${LOCAL_VENV_DIR}/bin/${PYTHON} backend_django/manage.py createsuperuser
 
 lvu: local_venv_up
 
@@ -163,7 +163,7 @@ local_docker_build:
 	$(MAKE) local_docker_update
 
 local_docker_update:
-	docker compose -f local.yml run --rm django bash -c "python manage.py makemigrations && python manage.py migrate"
+	docker compose -f local.yml run --rm django bash -c "python backend_django/manage.py makemigrations && python backend_django/manage.py migrate"
 
 
 local_docker_up:
@@ -173,13 +173,13 @@ local_docker_down:
 	docker compose -f local.yml down
 
 local_docker_preseed:
-	docker compose -f local.yml run --rm django bash -c "find ./fixtures -name '*.json' -print0 | xargs -0 -r python manage.py loaddata"
+	docker compose -f local.yml run --rm django bash -c "find ./backend_django/fixtures -name '*.json' -print0 | xargs -0 -r python backend_django/manage.py loaddata"
 
 local_docker_createsuperuser:
-	docker compose -f local.yml run --rm django python manage.py createsuperuser
+	docker compose -f local.yml run --rm django python backend_django/manage.py createsuperuser
 
 local_docker_passwordhash:
-	docker compose -f local.yml run --rm django python manage.py passwordhash
+	docker compose -f local.yml run --rm django python backend_django/manage.py passwordhash
 
 local_docker_cleanupall:
 	docker image prune -a
@@ -197,7 +197,7 @@ production_docker_build_images:
 	docker buildx bake --file docker-local_bake-production.hcl --progress=plain all
 
 production_docker_preseed:
-	docker compose -f production.yml run --rm django bash -c "find ./fixtures -name '*.json' ! -name 'dev_*' -print0 | xargs -0 -r python manage.py loaddata"
+	docker compose -f production.yml run --rm django bash -c "find ./backend_django/fixtures -name '*.json' ! -name 'dev_*' -print0 | xargs -0 -r python backend_django/manage.py loaddata"
 
 
 ######################################################################

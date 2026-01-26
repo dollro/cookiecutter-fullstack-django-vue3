@@ -8,7 +8,7 @@ services:
   django: &django
     build:
       context: .
-      dockerfile: ./compose/production/django/Dockerfile
+      dockerfile: ./docker/production/django/Dockerfile
       args:
         # you may adjust the UID/GID of the django user in the container
         # for security reasons, we use very high number
@@ -38,7 +38,7 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: ./compose/production/postgres/Dockerfile
+      dockerfile: ./docker/production/postgres/Dockerfile
     image: {{cookiecutter.project_slug}}_production_postgres
     volumes:
       - production_postgres_data:/var/lib/postgresql/data:Z
@@ -49,7 +49,7 @@ services:
   traefik:
     build:
       context: .
-      dockerfile: ./compose/production/traefik/Dockerfile
+      dockerfile: ./docker/production/traefik/Dockerfile
     image: {{cookiecutter.project_slug}}_production_traefik
     restart: always
     depends_on:

@@ -24,7 +24,7 @@ urlpatterns += [
     # API base url
     path(api_base, include("dj_rest_auth.urls")),
     path(api_base + "registration/", include("dj_rest_auth.registration.urls")),
-    path(api_base, include("config.api_router")),
+    path(api_base, include("backend_django.config.api_router")),
     path(api_base, include("backend_django.api.urls")),
     # DRF auth token
     # path("auth-token/", obtain_auth_token),

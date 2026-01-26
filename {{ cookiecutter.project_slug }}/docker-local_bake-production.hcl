@@ -26,7 +26,7 @@ variable "PLATFORM_SLUG" {
 # PostgreSQL service (always uses production Dockerfile)
 target "postgres" {
   context    = "."
-  dockerfile = "compose/production/postgres/Dockerfile"
+  dockerfile = "docker/production/postgres/Dockerfile"
   platforms  = ["${PLATFORM}"]
   pull       = true
   args = {
@@ -46,7 +46,7 @@ target "postgres" {
 # Traefik service
 target "traefik" {
   context    = "."
-  dockerfile = "compose/${BUILD_TARGET}/traefik/Dockerfile"
+  dockerfile = "docker/${BUILD_TARGET}/traefik/Dockerfile"
   platforms  = ["${PLATFORM}"]
   pull       = true
   args = {
@@ -66,7 +66,7 @@ target "traefik" {
 # Django service - Pre-stage build (first stage of multi-stage build)
 target "django-pre-stage" {
   context    = "."
-  dockerfile = "compose/production/django/Dockerfile"
+  dockerfile = "docker/production/django/Dockerfile"
   target     = "pre-stage"
   platforms  = ["${PLATFORM}"]
   pull       = true
@@ -87,7 +87,7 @@ target "django-pre-stage" {
 # Django service - Main stage build (final stage of multi-stage build)
 target "django" {
   context    = "."
-  dockerfile = "compose/production/django/Dockerfile"
+  dockerfile = "docker/production/django/Dockerfile"
   target     = "main-stage"
   platforms  = ["${PLATFORM}"]
   pull       = true

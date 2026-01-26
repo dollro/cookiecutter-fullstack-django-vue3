@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from config import celery_app
+from backend_django.config import celery_app
 
 User = get_user_model()
 

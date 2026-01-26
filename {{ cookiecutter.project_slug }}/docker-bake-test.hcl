@@ -30,7 +30,7 @@ variable "CI_COMMIT_REF_SLUG" {
 # Django service target (local build for testing)
 target "django-local" {
   context    = "."
-  dockerfile = "compose/${BUILD_TARGET}/django/Dockerfile"
+  dockerfile = "docker/${BUILD_TARGET}/django/Dockerfile"
   platforms  = ["${PLATFORM}"]
   pull       = true
   args = {
@@ -53,7 +53,7 @@ target "django-local" {
 # PostgreSQL service target (production build used in tests)
 target "postgres-production" {
   context    = "."
-  dockerfile = "compose/production/postgres/Dockerfile"
+  dockerfile = "docker/production/postgres/Dockerfile"
   platforms  = ["${PLATFORM}"]
   pull       = true
   args = {
@@ -76,7 +76,7 @@ target "postgres-production" {
 # Node.js/Vue service target (local build for testing)
 target "node-vue-local" {
   context    = "."
-  dockerfile = "compose/${BUILD_TARGET}/node-vue/Dockerfile"
+  dockerfile = "docker/${BUILD_TARGET}/node-vue/Dockerfile"
   platforms  = ["${PLATFORM}"]
   pull       = true
   args = {
