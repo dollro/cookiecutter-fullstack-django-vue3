@@ -1,207 +1,41 @@
-# Cookiecutter Fullstack Django + Vue 3 / Vite
+# Cookiecutter project template for Fullstack Django Vite/Vue3 Development
 
-<<<<<<< HEAD
-A production-ready [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template for building modern fullstack web applications with **Django REST Framework** backend and **Vue.js 3** frontend.
-
-Originally derived from [cookiecutter-django](https://github.com/cookiecutter/cookiecutter-django), this template has been enhanced for modern fullstack development with containerized workflows, async task processing, and CI/CD pipelines.
-
----
-
-## Executive Summary
-
-### Core Stack
-
-| Layer | Technologies |
-|-------|-------------|
-| **Backend** | Django 5.0, Django REST Framework 3.16, PostgreSQL 17, Celery 5.5, Redis 7.4 |
-| **Frontend** | Vue.js 3, Vite 5, Tailwind CSS 4, Pinia 2.1 |
-| **DevOps** | Docker, Docker Compose v2, GitLab CI/CD, Multi-platform builds (amd64/arm64) |
-
-### Key Features
-
-- **Docker-First Development** - Fully containerized local development with hot-reload
-- **Modern Frontend** - Vue 3 Composition API with Vite HMR and Tailwind CSS
-- **REST API** - Token-based authentication with dj-rest-auth
-- **Async Processing** - Celery workers with Redis broker and Flower monitoring
-- **Production Ready** - Multi-stage Docker builds, Traefik reverse proxy, Gunicorn
-- **CI/CD Pipeline** - GitLab CI with lint, test, multi-platform build, and release stages
-- **Multi-Architecture** - Supports linux/amd64 and linux/arm64 builds
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- [Cookiecutter](https://cookiecutter.readthedocs.io/) (`pip install cookiecutter`)
-- Docker & Docker Compose v2
-- Make
-- Git
-
-### 1. Generate Your Project
-
-```bash
-# From the template repository
-cookiecutter https://github.com/dollro/cookiecutter-fullstack-django-vue3
-
-# Or from a local clone
-cookiecutter /path/to/cookiecutter-fullstack-django-vue3
-```
-
-You will be prompted for:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `project_name` | Human-readable project name | WebApp |
-| `project_slug` | Python package name (auto-generated) | webapp |
-| `description` | Project description | My awesome fullstack project... |
-| `author_name` | Your name | John Doe |
-| `domain_name` | Production domain | example.com |
-| `email` | Contact email (auto-generated) | john.doe@example.com |
-| `docker_registry` | Docker registry URL | registry.hub.docker.com:5000/webapp |
-| `version` | Initial version | 0.1.0 |
-
-### 2. Build & Run
-
-```bash
-cd your_project_slug
-
-# Build Docker images
-make local_docker_build
-
-# Start all services
-make local_docker_up
-
-# Run database migrations
-make local_docker_update
-
-# Create admin user
-make local_docker_createsuperuser
-```
-
-### 3. Access Your Application
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Frontend** | http://localhost:3000 | Vue.js dev server with HMR |
-| **Backend API** | http://localhost:8000 | Django REST API |
-| **Django Admin** | http://localhost:8000/admin | Admin interface |
-| **Flower** | http://localhost:5555 | Celery task monitoring |
-| **Mailhog** | http://localhost:8025 | Email testing UI |
-
----
-
-## Development Workflow
-
-### Essential Commands
-
-```bash
-# Start/Stop
-make local_docker_up          # Start all services
-make local_docker_down        # Stop all services
-make local_docker_build       # Rebuild images
-
-# Database
-make local_docker_update      # Run migrations
-make local_docker_createsuperuser  # Create admin
-
-# Django Management
-docker compose -f local.yml run --rm django python backend_django/manage.py <command>
-docker compose -f local.yml run --rm django python backend_django/manage.py shell
-docker compose -f local.yml run --rm django pytest
-
-# Logs
-docker compose -f local.yml logs -f           # All services
-docker compose -f local.yml logs django       # Django only
-docker compose -f local.yml logs celeryworker # Celery only
-```
-
-### Before Committing
-
-```bash
-pre-commit run --all-files                           # Lint & format
-docker compose -f local.yml run --rm django pytest   # Run tests
-```
-
----
-
-## Project Structure
-
-After generation, your project will have:
-
-```
-your_project/
-├── backend_django/          # Self-contained Django project
-│   ├── config/              # Django project settings
-│   │   ├── settings/        # Environment-specific settings
-│   │   │   ├── base.py      # Shared settings
-│   │   │   ├── local.py     # Development
-│   │   │   ├── production.py # Production
-│   │   │   └── test.py      # Testing
-│   │   ├── celery_app.py    # Celery configuration
-│   │   └── urls.py          # URL routing
-│   ├── api/                 # REST API (views, serializers, urls)
-│   ├── users/               # User management app
-│   │   ├── api/             # User API endpoints
-│   │   └── models.py        # Custom User model
-│   ├── site_config/         # Site configuration app (SetupFlag model)
-│   ├── requirements/        # Python dependencies
-│   ├── fixtures/            # Django fixtures
-│   ├── manage.py            # Django management script
-│   ├── models.py            # Database models
-│   ├── tasks.py             # Celery tasks
-│   ├── static/              # Static files (+ built Vue assets)
-│   └── templates/           # Django templates
-├── frontend_vue/            # Self-contained Vue.js frontend
-│   ├── src/
-│   │   ├── components/      # Vue components
-│   │   ├── stores/          # Pinia state management
-│   │   └── rest/rest.js     # Centralized API module
-│   ├── vite.config.js       # Vite configuration
-│   ├── .prettierrc          # Prettier configuration
-│   └── package.json
-├── docker/                  # Docker configurations
-│   ├── local/               # Development Dockerfiles
-│   └── production/          # Production Dockerfiles
-├── .envs/                   # Environment files (gitignored)
-├── local.yml                # Docker Compose for development
-├── production.yml           # Docker Compose for production
-├── Makefile                 # Convenience commands
-└── TECHSTACK.md             # Full technical documentation
-```
-
----
-
-## Architecture Overview
-=======
 This cookiecutter was initially derived from https://github.com/cookiecutter/cookiecutter-django but enhanced with specific needs for modern fullstack development. It provides a production-ready template for building web applications with Django backend and Vue.js frontend.
 
 ---
 
-## Executive Summary
+## Table of Contents
 
-### Core Stack
+1. [Stack Overview](#1-stack-overview)
+2. [Development Environment](#2-development-environment)
+3. [Docker Architecture](#3-docker-architecture)
+4. [Backend (Django)](#4-backend-django)
+5. [Frontend (Vue.js)](#5-frontend-vuejs)
+6. [Frontend-Backend Integration](#6-frontend-backend-integration)
+7. [Async Processing (Celery)](#7-async-processing-celery)
+8. [CI/CD Pipeline](#8-cicd-pipeline)
+9. [Multi-Platform Builds](#9-multi-platform-builds)
+10. [Deployment](#10-deployment)
+11. [Development Workflows](#11-development-workflows)
+12. [Key Configuration Files](#12-key-configuration-files)
 
-| Layer | Technologies |
-|-------|-------------|
-| **Backend** | Django 5.0, Django REST Framework 3.16, PostgreSQL 17, Celery 5.5, Redis 7.4 |
-| **Frontend** | Vue.js 3, Vite 5, Tailwind CSS 4, Pinia 2.1 |
-| **DevOps** | Docker, Docker Compose v2, GitLab CI/CD, Multi-platform builds (amd64/arm64) |
+**Deep Dive Sections:**
 
-### Key Features
-
-- **Docker-First Development** - Fully containerized local development with hot-reload
-- **Modern Frontend** - Vue 3 Composition API with Vite HMR and Tailwind CSS
-- **REST API** - Token-based authentication with dj-rest-auth
-- **Async Processing** - Celery workers with Redis broker and Flower monitoring
-- **Production Ready** - Multi-stage Docker builds, Traefik reverse proxy, Gunicorn
-- **CI/CD Pipeline** - GitLab CI with lint, test, multi-platform build, and release stages
-- **Multi-Architecture** - Supports linux/amd64 and linux/arm64 builds
+13. [Container Startup Process](#13-deep-dive-container-startup-process)
+14. [CI/CD Latest Tag Management](#14-deep-dive-cicd-latest-tag-management)
+15. [E2C ARM Build Management](#15-deep-dive-e2c-arm-build-management)
+16. [Celery Task Processing](#16-deep-dive-celery-task-processing)
+17. [Centralized API Module](#17-deep-dive-centralized-api-module)
+18. [Production Docker Multi-Stage Build](#18-deep-dive-production-docker-multi-stage-build)
+19. [URL Routing Architecture](#19-deep-dive-url-routing-architecture)
+20. [Alternative Local Development (Virtual Environment)](#20-deep-dive-alternative-local-development-virtual-environment)
+21. [Frontend Component Architecture](#21-deep-dive-frontend-component-architecture)
+22. [Pinia State Management](#22-deep-dive-pinia-state-management)
+23. [Security Considerations](#23-deep-dive-security-considerations)
 
 ---
 
 ## 1. Stack Overview
->>>>>>> 7ffbbd4 (update in etail tech description)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -220,19 +54,11 @@ This cookiecutter was initially derived from https://github.com/cookiecutter/coo
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
 └─────────────────────────────────────────────────────────────────────────┘
          │                    │                              │
-<<<<<<< HEAD
-         ▼                    ▼                              ▼
-┌─────────────────┐  ┌─────────────────┐         ┌─────────────────────┐
-│   PostgreSQL    │  │     Redis       │         │    Celery Worker    │
-│   (Database)    │  │  (Cache/Broker) │◀────────│   (Async Tasks)     │
-│   :5432         │  │     :6379       │         │                     │
-└─────────────────┘  └─────────────────┘         └─────────────────────┘
-=======
          │                    │                              │
          ▼                    ▼                              ▼
 ┌─────────────────┐  ┌─────────────────┐         ┌─────────────────────┐
 │   PostgreSQL    │  │     Redis       │         │    Celery Worker    │
-│   (Database)    │  │  (Cache/Broker) │◀────────│   (Async Tasks)     │
+│   (Database)    │  │  (Cache/Broker) │◄────────│   (Async Tasks)     │
 │   :5432         │  │     :6379       │         │                     │
 └─────────────────┘  └─────────────────┘         └─────────────────────┘
                                                           │
@@ -320,102 +146,501 @@ docker compose -f local.yml run --rm django python manage.py makemigrations
 docker compose -f local.yml run --rm django python manage.py migrate
 docker compose -f local.yml run --rm django python manage.py shell
 docker compose -f local.yml run --rm django pytest
->>>>>>> 7ffbbd4 (update in etail tech description)
 ```
 
 ---
 
-<<<<<<< HEAD
-## CI/CD Pipeline
-
-The template includes a complete GitLab CI/CD configuration:
-
-| Stage | Description | Triggers |
-|-------|-------------|----------|
-| **lint** | Pre-commit hooks (Black, Pylint) | All branches |
-| **test** | pytest in Docker | All branches |
-| **build** | Multi-platform Docker images | staging, tags |
-| **build_manifests** | Merge multi-arch manifests | staging, tags |
-| **release** | Push to release registry | tags only |
-
-### Release Workflow
-
-```bash
-# Alpha/Internal release (no 'latest' tag update)
-git tag 1.0.0alpha
-git push origin 1.0.0alpha
-
-# Official release (updates 'latest' tag)
-git tag -a 1.0.0 -m "Release v1.0.0"
-git push origin 1.0.0
-=======
 ## 3. Docker Architecture
 
-The template includes a complete GitLab CI/CD configuration:
+### Local Development Stack (`local.yml`)
+
+```yaml
+Services:
+  django:        # Backend API (port 8000 → 5000 internal)
+  postgres:      # PostgreSQL database (port 5432)
+  redis:         # Cache & Celery broker (port 6379)
+  celeryworker:  # Async task processor
+  celerybeat:    # Scheduled tasks
+  flower:        # Task monitoring UI (port 5555)
+  node-vue:      # Vite dev server (port 3000)
+  mailhog:       # Email testing (port 8025)
+```
+
+### Service Configuration
+
+All services share a common network (`<project>_network`) enabling inter-container communication.
+
+**Django Service:**
+- Uses YAML anchor (`&django`) for configuration reuse by Celery services
+- Mounts entire project directory for hot-reload: `.:/app:z`
+- Environment loaded from `.envs/.local/.django`
+
+**Node-Vue Service:**
+- Separate `node_modules` volume to avoid conflicts
+- Runs Vite dev server with HMR on port 3000
+
+### Docker Image Structure
+
+**Local Development:**
+- Images are built locally with source code mounted
+- Uses `uv` (Astral's fast Python package manager) instead of pip
+- Includes system dependencies as needed (e.g., TeX Live for PDF generation)
+
+**Production:**
+- Multi-stage build:
+  1. `pre-stage`: Builds Vue.js assets with Node
+  2. `main-stage`: Python environment with pre-built assets
+- Frontend assets baked into Django static files
+
+---
+
+## 4. Backend (Django)
+
+### Project Structure
+
+```
+<project>/
+├── backend_django/           # Main Django application
+│   ├── models.py             # Database models
+│   ├── tasks.py              # Celery task definitions
+│   ├── api/
+│   │   ├── views.py          # REST API endpoints
+│   │   ├── serializers.py    # DRF serializers
+│   │   └── urls.py           # API URL routing
+│   ├── utils/                # Business logic utilities
+│   ├── migrations/           # Database migrations
+│   ├── media/                # User uploads
+│   ├── static/               # Static files (includes built Vue assets)
+│   └── templates/            # Django templates
+├── config/                   # Django project configuration
+│   ├── settings/
+│   │   ├── base.py           # Common settings
+│   │   ├── local.py          # Development settings
+│   │   └── production.py     # Production settings
+│   ├── urls.py               # Root URL configuration
+│   ├── celery_app.py         # Celery configuration
+│   └── wsgi.py               # WSGI entry point
+├── requirements/
+│   ├── base.txt              # Core dependencies
+│   ├── local.txt             # Development dependencies
+│   └── production.txt        # Production dependencies
+└── manage.py
+```
+
+### Settings Hierarchy
+
+```
+config/settings/
+├── base.py        # Shared settings (loaded by all environments)
+├── local.py       # extends base.py → DEBUG=True, dev tools
+└── production.py  # extends base.py → security, performance
+```
+
+Environment determined by `DJANGO_SETTINGS_MODULE`:
+- Local: `config.settings.local`
+- Production: `config.settings.production`
+
+### Authentication System
+
+- **dj-rest-auth** + **django-allauth** for authentication
+- Token-based authentication (DRF TokenAuthentication)
+- Email as primary identifier (no username required)
+
+```python
+# REST Framework configuration
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
+}
+```
+
+### Database
+
+- PostgreSQL with `psycopg` 3.x driver
+- Atomic requests enabled by default
+- Custom User model recommended
+
+### API Endpoint Patterns
+
+```
+Authentication:
+POST   /api/v1/auth/login/              # Login
+POST   /api/v1/auth/logout/             # Logout
+POST   /api/v1/auth/registration/       # Register
+
+Feature Endpoints (example patterns):
+POST   /api/v1/<feature>/create/        # Create resource
+GET    /api/v1/<feature>/status/<id>/   # Check status
+GET    /api/v1/<feature>/results/<id>/  # Get results
+GET    /api/v1/<feature>/list/          # Paginated list
+DELETE /api/v1/<feature>/delete/<id>/   # Delete resource
+
+System:
+GET    /api/v1/version-info/            # App version & environment
+```
+
+---
+
+## 5. Frontend (Vue.js)
+
+### Project Structure
+
+```
+frontend_vue/
+├── src/
+│   ├── main.js               # Application entry point
+│   ├── App.vue               # Root component
+│   ├── components/           # Vue components
+│   ├── rest/
+│   │   └── rest.js           # Centralized API module (MANDATORY)
+│   ├── stores/               # Pinia state management
+│   └── locales/              # i18n translation files
+├── index.html                # HTML template
+├── vite.config.js            # Vite configuration
+├── package.json              # Dependencies
+└── eslint.config.js          # ESLint flat config
+```
+
+### Build Configuration
+
+**Vite Configuration (`vite.config.js`):**
+
+```javascript
+export default defineConfig({
+  build: {
+    outDir: '../../backend_django/static/vue/',  // Output to Django static
+    manifest: true,  // Generate manifest for Django
+  },
+  base: '/static/vue',  // Production asset path
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+    hmr: {
+      host: 'localhost',
+      port: 3000,
+      protocol: 'ws',
+    },
+  },
+  plugins: [
+    vue(),
+    VueI18nPlugin(),
+    splitVendorChunkPlugin(),
+    tailwindcss(),
+  ],
+});
+```
+
+### Critical Patterns
+
+**1. API Module (MANDATORY)**
+
+All API calls must go through `src/rest/rest.js`:
+
+```javascript
+// CORRECT
+import api from '../rest/rest.js';
+const response = await api.fetchData(params);
+
+// WRONG - Never import axios directly
+import axios from 'axios';  // DON'T DO THIS
+```
+
+**2. Styling (Tailwind CSS v4 Only)**
+
+No custom CSS files or `<style>` blocks allowed:
+
+```vue
+<!-- CORRECT -->
+<div class="flex items-center p-4 bg-white rounded-lg shadow-md">
+  <button class="px-4 py-2 bg-blue-600 text-white rounded">Submit</button>
+</div>
+```
+
+**3. Component Structure**
+
+Use Vue 3 Composition API with `<script setup>`:
+
+```vue
+<script setup>
+import { ref, onMounted } from 'vue';
+import api from '../rest/rest.js';
+
+const loading = ref(false);
+const data = ref(null);
+
+async function fetchData() {
+  loading.value = true;
+  try {
+    const response = await api.getSomeData();
+    data.value = response.data;
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(fetchData);
+</script>
+
+<template>
+  <div class="p-4">...</div>
+</template>
+```
+
+---
+
+## 6. Frontend-Backend Integration
+
+### Development Flow
+
+```
+┌─────────────────────┐     ┌─────────────────────┐
+│   Vite Dev Server   │     │   Django Server     │
+│   localhost:3000    │────▶│   localhost:8000    │
+│   (Vue.js + HMR)    │     │   (REST API)        │
+└─────────────────────┘     └─────────────────────┘
+```
+
+- Frontend runs on Vite dev server (port 3000) with hot module replacement
+- API requests proxied to Django (port 8000)
+- CORS configured for cross-origin requests
+
+### Production Flow
+
+```
+┌─────────────────────────────────────────────────┐
+│                   Django                         │
+│   ┌─────────────────────────────────────────┐   │
+│   │  /static/vue/  (Pre-built Vue assets)   │   │
+│   └─────────────────────────────────────────┘   │
+│   ┌─────────────────────────────────────────┐   │
+│   │  /api/v1/      (REST API endpoints)     │   │
+│   └─────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────┘
+```
+
+- Vue assets built into `backend_django/static/vue/`
+- Django serves both static assets and API from same origin
+- WhiteNoise middleware handles static file serving
+
+### Django-Vite Integration
+
+Django uses `django-vite` to integrate with Vite:
+
+```python
+# config/settings/base.py
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": env.bool("DJANGO_VITE_DEV_MODE", default=False),
+        "dev_server_host": "localhost",
+        "dev_server_port": 3000,
+        "static_url_prefix": "vue",
+        "manifest_path": APPS_DIR / "static" / "vue" / ".vite" / "manifest.json",
+    }
+}
+```
+
+- `dev_mode=True`: Uses Vite dev server
+- `dev_mode=False`: Uses built manifest for asset resolution
+
+---
+
+## 7. Async Processing (Celery)
+
+### Architecture
+
+```
+┌──────────────┐      ┌─────────────┐      ┌──────────────────┐
+│ Django View  │─────▶│    Redis    │◀─────│  Celery Worker   │
+│ (task.delay) │      │  (Broker)   │      │ (task execution) │
+└──────────────┘      └─────────────┘      └──────────────────┘
+                             │
+                             │
+                      ┌──────▼──────┐
+                      │ Celery Beat │
+                      │ (Scheduler) │
+                      └─────────────┘
+```
+
+### Configuration
+
+```python
+# config/settings/base.py
+CELERY_BROKER_URL = env("CELERY_BROKER_URL")  # redis://redis:6379/0
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_TASK_TIME_LIMIT = 60 * 60  # 1 hour max
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+```
+
+### Task Pattern
+
+```python
+# backend_django/tasks.py
+from celery import shared_task
+
+@shared_task(bind=True)
+def process_data_task(self, request_id):
+    """Process data asynchronously."""
+    # Long-running operations
+    # External API calls
+    # Heavy computations
+```
+
+### Status Flow
+
+```
+pending → processing → completed
+                    ↘ failed
+```
+
+### Monitoring
+
+- **Flower** (http://localhost:5555): Real-time task monitoring
+- **Celery logs**: `docker compose -f local.yml logs celeryworker`
+
+---
+
+## 8. CI/CD Pipeline
+
+### Pipeline Stages
+
+```
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌───────────────┐    ┌─────────┐
+│  lint   │───▶│  test   │───▶│  build  │───▶│build_manifests│───▶│ release │
+└─────────┘    └─────────┘    └─────────┘    └───────────────┘    └─────────┘
+```
+
+### Stage Details
 
 | Stage | Description | Triggers |
 |-------|-------------|----------|
-| **lint** | Pre-commit hooks (Black, Pylint) | All branches |
-| **test** | pytest in Docker | All branches |
-| **build** | Multi-platform Docker images | staging, tags |
+| **lint** | Pre-commit hooks (Black, Pylint) | All feature branches |
+| **test** | pytest in Docker | All feature branches |
+| **build** | Build Docker images (per platform) | staging, tags |
 | **build_manifests** | Merge multi-arch manifests | staging, tags |
 | **release** | Push to release registry | tags only |
 
-### Release Workflow
+### Branch Rules
+
+| Branch Pattern | Stages Run |
+|----------------|------------|
+| `fix/*`, `feat/*`, `test/*`, `chore/*` | lint, test |
+| `staging` | lint, test, build, build_manifests |
+| Tags (e.g., `1.2.3`) | All stages including release |
+
+### Tag Types and Release Strategy
+
+- **Annotated tags** (`git tag -a 1.0.0 -m "Release"`): Official releases, updates `latest` tag
+- **Lightweight tags** (`git tag 1.0.0alpha`): Internal/alpha releases, no `latest` update
 
 ```bash
-# Alpha/Internal release (no 'latest' tag update)
-git tag 1.0.0alpha
-git push origin 1.0.0alpha
+# Official release
+git tag -a 1.2.3 -m "Release v1.2.3"
+git push origin 1.2.3
 
 # Alpha release
 git tag 1.2.3alpha
 git push origin 1.2.3alpha
->>>>>>> 7ffbbd4 (update in etail tech description)
 ```
 
 ---
 
-<<<<<<< HEAD
-## Documentation
-
-For comprehensive technical documentation, see [TECHSTACK.md]({{ cookiecutter.project_slug }}/TECHSTACK.md) in the generated project, which includes:
-
-- Detailed stack overview with diagrams
-- Docker architecture and configuration
-- Backend patterns (Django, DRF, Celery)
-- Frontend patterns (Vue 3, Pinia, Tailwind)
-- CI/CD pipeline deep dives
-- Security considerations
-- Alternative local venv development
-
----
-
-## License
-
-This project is open source. See the LICENSE file for details.
-
----
-
-**Template Version:** January 2026
-=======
 ## 9. Multi-Platform Builds
 
-For comprehensive technical documentation, see [README-TECHSTACK.md]({{ cookiecutter.project_slug }}/README-TECHSTACK.md) in the generated project, which includes:
+### Supported Platforms
 
-- Detailed stack overview with diagrams
-- Docker architecture and configuration
-- Backend patterns (Django, DRF, Celery)
-- Frontend patterns (Vue 3, Pinia, Tailwind)
-- CI/CD pipeline deep dives
-- Security considerations
-- Alternative local venv development
+| Platform | Architecture | Build Enabled | Notes |
+|----------|--------------|---------------|-------|
+| `linux/amd64` | x86_64 | Default ON | Standard servers |
+| `linux/arm64` | ARM 64-bit | Optional | Apple Silicon, ARM servers |
+| `linux/arm/v7` | ARM 32-bit | Optional | Raspberry Pi |
+
+### Build Process
+
+**Docker Buildx Bake** is used for parallel multi-service builds:
+
+```
+docker-bake-production.hcl
+├── postgres    (single-stage)
+├── traefik     (single-stage)
+├── watchtower  (single-stage)
+└── django      (multi-stage)
+    ├── pre-stage   (Node.js - Vue build)
+    └── main-stage  (Python - Django)
+```
+
+### ARM Build Strategies
+
+Two options for ARM builds:
+
+1. **Local Cross-Compilation**: Uses QEMU emulation on amd64 runner
+2. **E2C Remote Build**: Uses native ARM EC2 instances via AWS
+
+```yaml
+# .gitlab-ci.yml
+E2C_USAGE: "false"  # true = use AWS ARM instances
+E2C_INSTANCE_STRATEGY: "template"  # or "existing"
+```
+
+### Manifest Merging
+
+After platform-specific builds, manifests are merged:
+
+```bash
+# Creates multi-arch manifest
+docker buildx imagetools create \
+  -t registry/image:1.0.0 \
+  registry/image:1.0.0-amd64 \
+  registry/image:1.0.0-arm64
+```
 
 ---
 
-## License
+## 10. Deployment
 
-This project is open source. See the LICENSE file for details.
+### Production Docker Stack
+
+```yaml
+# production.yml services
+django:       # Gunicorn serving Django
+postgres:     # PostgreSQL database
+redis:        # Cache & Celery broker
+celeryworker: # Async task processor
+celerybeat:   # Scheduled tasks
+traefik:      # Reverse proxy (port 80)
+```
+
+### Traefik Configuration
+
+```
+Internet → Traefik (:80) → Django (:5000)
+                        ↳ SSL termination
+                        ↳ Routing rules
+```
+
+### Deployment Commands
+
+```bash
+# Deploy to specific host
+make deploy_docker_<hostname>
+
+# Uses SSH context for remote Docker operations
+docker context use <hostname>-remote
+docker compose -f deploy.yml up -d
+```
+
+### Volume Mounts (Production)
+
+```yaml
+volumes:
+  production_postgres_data: {}       # Database files
+  production_postgres_data_backups: {}
+  production_traefik: {}             # SSL certificates
+  production_media: {}               # User uploads
+```
 
 ---
 
@@ -1676,4 +1901,3 @@ git push origin 1.2.3
 ---
 
 **Last Updated:** January 2026
->>>>>>> 7ffbbd4 (update in etail tech description)
