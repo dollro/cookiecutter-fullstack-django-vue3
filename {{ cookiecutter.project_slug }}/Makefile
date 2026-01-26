@@ -92,7 +92,7 @@ local_venv_up:
 	@( \
 	echo "Running development servers... Note: you have the start celery seperately by 'make local_venv_celery_start'"; \
 	source ${LOCAL_VENV_DIR}/bin/activate; \
-	./runserver.sh -e ${LOCAL_VENV_ENV} -r all;\
+	./backend_django/runserver.sh -e ${LOCAL_VENV_ENV} -r all;\
 	)
 
 lvd: local_venv_django_run
@@ -100,7 +100,7 @@ lvd: local_venv_django_run
 local_venv_django_run:
 	@( \
 	source ${LOCAL_VENV_DIR}/bin/activate; \
-	./runserver.sh -e ${LOCAL_VENV_ENV} -r django;\
+	./backend_django/runserver.sh -e ${LOCAL_VENV_ENV} -r django;\
 	)
 
 lvv: local_venv_vue_run
@@ -108,7 +108,7 @@ lvv: local_venv_vue_run
 local_venv_vue_run:
 	@( \
 	source ${LOCAL_VENV_DIR}/bin/activate; \
-	./runserver.sh -e ${LOCAL_VENV_ENV} -r vue;\
+	./backend_django/runserver.sh -e ${LOCAL_VENV_ENV} -r vue;\
 	)
 
 local_venv_vue_build:
@@ -119,8 +119,8 @@ local_venv_celery_stop:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
 	( \
-	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local CELERY_WORKDIR=${MKFILE_DIR} ./celeryd-venv.sh celery-venv.conf worker stop ; \
-	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local ./celeryd-venv.sh celery-venv.conf beat stop ; \
+	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local CELERY_WORKDIR=${MKFILE_DIR} ./backend_django/celeryd-venv.sh backend_django/celery-venv.conf worker stop ; \
+	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local ./backend_django/celeryd-venv.sh backend_django/celery-venv.conf beat stop ; \
 	)
 
 
@@ -128,16 +128,16 @@ local_venv_celery_start:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
 	( \
-	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_WORKDIR=${MKFILE_DIR} CELERY_VENV_MODE=local ./celeryd-venv.sh celery-venv.conf worker start ; \
-	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local ./celeryd-venv.sh celery-venv.conf beat start ; \
+	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_WORKDIR=${MKFILE_DIR} CELERY_VENV_MODE=local ./backend_django/celeryd-venv.sh backend_django/celery-venv.conf worker start ; \
+	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local ./backend_django/celeryd-venv.sh backend_django/celery-venv.conf beat start ; \
 	)
 
 local_venv_celery_restart:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
 	( \
-	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_WORKDIR=${MKFILE_DIR} CELERY_VENV_MODE=local ./celeryd-venv.sh celery-venv.conf worker restart ; \
-	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local ./celeryd-venv.sh celery-venv.conf beat restart ; \
+	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_WORKDIR=${MKFILE_DIR} CELERY_VENV_MODE=local ./backend_django/celeryd-venv.sh backend_django/celery-venv.conf worker restart ; \
+	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_VENV_MODE=local ./backend_django/celeryd-venv.sh backend_django/celery-venv.conf beat restart ; \
 	)
 
 
@@ -145,7 +145,7 @@ local_venv_celery_status:
 	$(eval include ${LOCAL_VENV_ENV})
 	$(eval export $(shell sed 's/=.*//' ${LOCAL_VENV_ENV}))
 	( \
-	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_WORKDIR=${MKFILE_DIR} CELERY_VENV_MODE=local ./celeryd-venv.sh celery-venv.conf status ; \
+	CELERY_NAME=${PROJECT_NAME} CELERY_VIRTUALENV_DIR=${LOCAL_VENV_DIR} CELERY_WORKDIR=${MKFILE_DIR} CELERY_VENV_MODE=local ./backend_django/celeryd-venv.sh backend_django/celery-venv.conf status ; \
 	)
 
 

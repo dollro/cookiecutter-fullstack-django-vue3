@@ -23,7 +23,7 @@ CELERY_TASK_ALWAYS_EAGER=True
 # ------------------------------------------------------------------------------
 CELERY_FLOWER_USER=MCkbCmcPupfmmeWoRIcWmzcRyvlWWKFZ
 CELERY_FLOWER_PASSWORD=4h1RBSLCHZrwrncWwVbgrRXadHvGIMF9dGIXfMD0r2796mCVZyUlSaZP6DFPDt8o
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=True
 
 # PostgreSQL
 # ------------------------------------------------------------------------------

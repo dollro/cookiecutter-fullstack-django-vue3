@@ -44,7 +44,7 @@ services:
 
   celeryworker:
     <<: *django
-    image: {{cookiecutter.project_slug}}_local_celeryworker
+    image: "${IMAGE_BASENAME}-celeryworker:${IMAGETAG}"
     depends_on:
       - redis
       - postgres
@@ -54,7 +54,7 @@ services:
 
   celerybeat:
     <<: *django
-    image: {{cookiecutter.project_slug}}_local_celerybeat
+    image: "${IMAGE_BASENAME}-celerybeat:${IMAGETAG}"
     depends_on:
       - redis
       - postgres
@@ -64,12 +64,12 @@ services:
 
   flower:
     <<: *django
-    image: {{cookiecutter.project_slug}}_local_flower
+    image: "${IMAGE_BASENAME}-flower:${IMAGETAG}"
     ports:
       - "5555:5555"
     command: /start-flower
 
-    node-vue:
+  node-vue:
     #build:
     #  context: .
     #  dockerfile: ./docker/local/node-vue/Dockerfile

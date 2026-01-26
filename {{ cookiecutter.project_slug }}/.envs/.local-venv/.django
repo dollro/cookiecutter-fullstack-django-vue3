@@ -22,7 +22,7 @@ REDIS_URL=redis://localhost:6379/0
 CELERY_BROKER_URL=redis://localhost:6379/0
 CELERY_TASK_ALWAYS_EAGER=True
 CELERY_VENV_MODE=local
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=True
 
 # Flower
 # ------------------------------------------------------------------------------
