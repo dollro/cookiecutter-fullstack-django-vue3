@@ -133,6 +133,10 @@ After generation, your project will have:
 your_project/
 ├── backend_django/          # Django application
 │   ├── api/                 # REST API (views, serializers, urls)
+│   ├── users/               # User management app
+│   │   ├── api/             # User API endpoints
+│   │   └── models.py        # Custom User model
+│   ├── config/              # Site configuration app
 │   ├── models.py            # Database models
 │   ├── tasks.py             # Celery tasks
 │   ├── static/              # Static files (+ built Vue assets)
@@ -148,7 +152,8 @@ your_project/
 │   ├── settings/
 │   │   ├── base.py          # Shared settings
 │   │   ├── local.py         # Development
-│   │   └── production.py    # Production
+│   │   ├── production.py    # Production
+│   │   └── test.py          # Testing
 │   ├── celery_app.py        # Celery configuration
 │   └── urls.py              # URL routing
 ├── compose/                 # Docker configurations
@@ -158,7 +163,7 @@ your_project/
 ├── local.yml                # Docker Compose for development
 ├── production.yml           # Docker Compose for production
 ├── Makefile                 # Convenience commands
-└── README-TECHSTACK.md      # Full technical documentation
+└── TECHSTACK.md             # Full technical documentation
 ```
 
 ---
@@ -751,7 +756,7 @@ git push origin 1.2.3alpha
 <<<<<<< HEAD
 ## Documentation
 
-For comprehensive technical documentation, see [README-TECHSTACK.md]({{ cookiecutter.project_slug }}/README-TECHSTACK.md) in the generated project, which includes:
+For comprehensive technical documentation, see [TECHSTACK.md]({{ cookiecutter.project_slug }}/TECHSTACK.md) in the generated project, which includes:
 
 - Detailed stack overview with diagrams
 - Docker architecture and configuration
