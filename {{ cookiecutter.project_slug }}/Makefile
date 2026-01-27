@@ -28,18 +28,19 @@ local_venv_sw_setup:
 	sudo apt install -y redis-server
 	sudo apt install -y libjpeg-dev zlib1g-dev
 	sudo apt install -y git-secret
+	# Install uv package manager
+	curl -LsSf https://astral.sh/uv/install.sh | sh
 
 	mkdir -p ./log
-	mkdir -p  ${LOCAL_VENVS_DIR}
+	mkdir -p ${LOCAL_VENVS_DIR}
 	chmod u+x ./cert/mkcert-amd64
 	./cert/mkcert-amd64 -cert-file ./cert/cert.pem -key-file ./cert/key.pem localhost 127.0.0.1 $(uname -n) $(hostname -I | awk '{ print $1 }')
-#	./cert/mkcert -cert-file ./cert/cert.pem -key-file ./cert/key.pem localhost 127.0.0.1 192.168.178.62 0.0.0.0
-	${PYTHON} -m venv ${LOCAL_VENV_DIR}
+	~/.local/bin/uv venv ${LOCAL_VENV_DIR} --python ${PYTHON}
+	~/.local/bin/uv pip install --python ${LOCAL_VENV_DIR}/bin/python -r backend_django/requirements/local.txt
 	@( \
 		source ${LOCAL_VENV_DIR}/bin/activate; \
-		pip install -r backend_django/requirements/local.txt; \
 		if [ -d .git ]; then pre-commit install; else echo "pre-commit not installed since no git repository"; fi;\
-    )
+	)
 	sudo npm install -g pnpm
 	pnpm --dir ./frontend_vue install
 
