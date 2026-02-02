@@ -33,7 +33,7 @@ function get_current_registry_latest_version() {
 
     # Try to get version from the latest tag in registry
     # We'll use the first service (django) as a reference since all services should have the same version
-    local latest_image="$RELEASE_REGISTRY_IMAGE/{{ cookiecutter.project_slug }}-django:latest"
+    local latest_image="$RELEASE_REGISTRY_IMAGE/sswebapp-django:latest"
 
     # Check if latest tag exists in registry
     if ./regctl image inspect "$latest_image" >/dev/null 2>&1; then
@@ -56,10 +56,10 @@ function get_current_registry_latest_version() {
                 log_info "Latest tag digest: $latest_digest"
 
                 # List all version tags and find which one matches latest's digest
-                local version_tags=$(./regctl tag ls "$RELEASE_REGISTRY_IMAGE/{{ cookiecutter.project_slug }}-django" 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+(\.[0-9]+)?' | sort -V)
+                local version_tags=$(./regctl tag ls "$RELEASE_REGISTRY_IMAGE/sswebapp-django" 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+(\.[0-9]+)?' | sort -V)
 
                 for tag in $version_tags; do
-                    local tag_image="$RELEASE_REGISTRY_IMAGE/{{ cookiecutter.project_slug }}-django:$tag"
+                    local tag_image="$RELEASE_REGISTRY_IMAGE/sswebapp-django:$tag"
                     local tag_digest=$(./regctl image digest "$tag_image" 2>/dev/null || echo "")
 
                     if [ "$tag_digest" = "$latest_digest" ]; then
@@ -84,9 +84,9 @@ function get_current_registry_latest_version() {
                 log_warning "Could not get digest for 'latest' tag"
                 # Last resort fallback - get the highest version tag excluding current
                 if [ -n "$CI_COMMIT_TAG" ]; then
-                    registry_latest_version=$(./regctl tag ls "$RELEASE_REGISTRY_IMAGE/{{ cookiecutter.project_slug }}-django" 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+(\.[0-9]+)?' | grep -v "^${CI_COMMIT_TAG}$" | sort -V | tail -n1 || echo "")
+                    registry_latest_version=$(./regctl tag ls "$RELEASE_REGISTRY_IMAGE/sswebapp-django" 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+(\.[0-9]+)?' | grep -v "^${CI_COMMIT_TAG}$" | sort -V | tail -n1 || echo "")
                 else
-                    registry_latest_version=$(./regctl tag ls "$RELEASE_REGISTRY_IMAGE/{{ cookiecutter.project_slug }}-django" 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+(\.[0-9]+)?' | sort -V | tail -n1 || echo "")
+                    registry_latest_version=$(./regctl tag ls "$RELEASE_REGISTRY_IMAGE/sswebapp-django" 2>/dev/null | grep -E '^v?[0-9]+\.[0-9]+(\.[0-9]+)?' | sort -V | tail -n1 || echo "")
                 fi
                 if [ -n "$registry_latest_version" ]; then
                     log_warning "Using highest version tag as fallback: $registry_latest_version"

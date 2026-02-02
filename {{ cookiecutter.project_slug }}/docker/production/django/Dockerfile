@@ -109,6 +109,10 @@ COPY --chown=$UNAME:$UNAME ./docker/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 
+COPY --chown=$UNAME:$UNAME ./docker/django/seed_fixtures.sh /seed_fixtures.sh
+RUN sed -i 's/\r$//g' /seed_fixtures.sh
+RUN chmod +x /seed_fixtures.sh
+
 COPY --chown=$UNAME:$UNAME ./docker/production/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker
 RUN chmod +x /start-celeryworker

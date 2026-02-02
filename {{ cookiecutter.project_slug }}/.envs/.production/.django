@@ -58,10 +58,6 @@ REDIS_URL=redis://redis:6379/0
 CELERY_FLOWER_USER=MCkbCmcPupfmmeWoRIcWmzcRyvlWWKFZ
 CELERY_FLOWER_PASSWORD=tXMzAU8KPYUnZnm3drj3HEDotzAqLtVyI5E415yzcE9Uq3rnAIztyZJaqeH5UEv7
 
-#Vue FrontEnd
-VITE_APP_STATIC_ROOT=/static
-VITE_APP_API_ROOT=/api/v1
-
 # PostgreSQL
 # ------------------------------------------------------------------------------
 POSTGRES_HOST=postgres

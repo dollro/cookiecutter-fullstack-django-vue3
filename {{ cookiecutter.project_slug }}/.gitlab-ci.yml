@@ -300,8 +300,9 @@ test:
     # TEST
     #
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm node-vue bash -c "pnpm --dir ./frontend_vue run build -- --mode production"
-    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python backend_django/manage.py migrate"
-    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python backend_django/manage.py loaddata backend_django/fixtures/*.json; fi"
+    # Initialize database (migrations + seed fixtures)
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python backend_django/manage.py migrate && /seed_fixtures.sh"
+    # Run tests
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run django pytest --junitxml=test_report.xml
   artifacts:
     when: always

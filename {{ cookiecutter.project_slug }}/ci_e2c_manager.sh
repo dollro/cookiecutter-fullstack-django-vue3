@@ -311,7 +311,7 @@ create_instance_from_template() {
 
     # Create unique tags for tracking
     local timestamp=$(date +%Y%m%d-%H%M%S)
-    local instance_tags="{Key=Name,Value=ci-build-${CI_JOB_ID}-${timestamp}},{Key=JobId,Value=${CI_JOB_ID}},{Key=CreatedBy,Value=GitLabCI},{Key=Project,Value={{cookiecutter.project_slug}}},{Key=AutoTerminate,Value=true}"
+    local instance_tags="{Key=Name,Value=ci-build-${CI_JOB_ID}-${timestamp}},{Key=JobId,Value=${CI_JOB_ID}},{Key=CreatedBy,Value=GitLabCI},{Key=Project,Value={{ cookiecutter.project_slug }}},{Key=AutoTerminate,Value=true}"
 
     aws_cmd+=("--tag-specifications" "ResourceType=instance,Tags=[${instance_tags}]")
     aws_cmd+=("--query" "Instances[0].InstanceId")
