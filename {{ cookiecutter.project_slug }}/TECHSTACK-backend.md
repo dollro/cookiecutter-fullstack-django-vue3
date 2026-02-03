@@ -60,14 +60,15 @@ This document covers Django-specific details for the fullstack Django Vite/Vue3 
 │   │   ├── api_router.py     # DRF router configuration
 │   │   ├── celery_app.py     # Celery configuration
 │   │   └── wsgi.py           # WSGI entry point
-│   ├── requirements/
-│   │   ├── base.txt          # Core dependencies
-│   │   ├── local.txt         # Development dependencies
-│   │   └── production.txt    # Production dependencies
+│   ├── requirements/         # DEPRECATED - kept for backwards compatibility
+│   │   ├── base.txt
+│   │   ├── local.txt
+│   │   └── production.txt
 │   ├── fixtures/             # Database fixtures
 │   └── manage.py             # Django management script
-├── frontend_vue/             # Vue.js frontend application
-└── docker/                   # Docker configuration files
+├── pyproject.toml              # Python dependencies & tool config (single source of truth)
+├── frontend_vue/               # Vue.js frontend application
+└── docker/                     # Docker configuration files
 ```
 
 ### Settings Hierarchy

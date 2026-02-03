@@ -178,7 +178,7 @@ All services share a common network (`<project>_network`) enabling inter-contain
 
 **Local Development:**
 - Images are built locally with source code mounted
-- Uses `uv` (Astral's fast Python package manager) instead of pip
+- Uses `uv` with `pyproject.toml` for dependency management (replaces pip + requirements.txt)
 - Includes system dependencies as needed (e.g., TeX Live for PDF generation)
 
 **Production:**
@@ -713,7 +713,7 @@ FROM node:18-bookworm-slim AS pre-stage
 FROM python:3.12-slim-bookworm AS main-stage
 # - Install system dependencies
 # - Install uv (Astral's package manager)
-# - Install Python dependencies via uv
+# - Install Python dependencies via uv from pyproject.toml
 # - Copy from pre-stage: includes pre-built Vue assets
 # - Setup non-root user
 # - Copy start scripts
