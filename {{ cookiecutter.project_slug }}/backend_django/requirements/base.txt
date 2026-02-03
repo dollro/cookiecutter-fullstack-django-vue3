@@ -1,5 +1,6 @@
-
-
+# DEPRECATED: This file is deprecated and will be removed in a future release.
+# Dependencies are now managed in pyproject.toml
+# Install with: uv pip install -r pyproject.toml --extra dev --extra test
 
 pre-commit==4.0.1  # https://github.com/pre-commit/pre-commit
 pytz==2021.3  # https://github.com/stub42/pytz

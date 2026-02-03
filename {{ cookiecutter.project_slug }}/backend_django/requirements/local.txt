@@ -1,3 +1,7 @@
+# DEPRECATED: This file is deprecated and will be removed in a future release.
+# Dependencies are now managed in pyproject.toml
+# Install with: uv pip install -r pyproject.toml --extra dev --extra test
+
 -r base.txt
 
 Werkzeug==2.2.0 # https://github.com/pallets/werkzeug

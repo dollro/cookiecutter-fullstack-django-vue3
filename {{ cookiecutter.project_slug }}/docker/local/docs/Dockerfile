@@ -1,4 +1,6 @@
-FROM python:3.11-slim-bookworm
+# syntax = docker/dockerfile:1.3
+FROM python:3.12-slim-bookworm
+ARG TARGETPLATFORM
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -21,13 +23,18 @@ RUN apt-get update \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ./docker/production/django/pip.conf /etc/pip.conf
-RUN if [ "${TARGETPLATFORM}" != "linux/arm/v7" ] ; then rm /etc/pip.conf; fi
+# Install uv for dependency management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# Requirements are installed here to ensure they will be cached.
-COPY ./requirements /requirements
-# All imports needed for autodoc.
-RUN pip install -r /requirements/local.txt -r /requirements/production.txt
+# Copy pyproject.toml and uv.lock for dependency installation
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies (dev, docs, and production for full autodoc coverage)
+RUN --mount=type=cache,id=pip-cache-$TARGETPLATFORM,target=/root/.cache/uv  \
+    if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
+        export UV_EXTRA_INDEX_URL="https://www.piwheels.org/simple"; \
+    fi && \
+    uv pip install --system -r pyproject.toml --extra dev --extra docs --extra production
 
 WORKDIR /docs
 

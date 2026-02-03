@@ -36,7 +36,7 @@ local_venv_sw_setup:
 	chmod u+x ./cert/mkcert-amd64
 	./cert/mkcert-amd64 -cert-file ./cert/cert.pem -key-file ./cert/key.pem localhost 127.0.0.1 $(uname -n) $(hostname -I | awk '{ print $1 }')
 	~/.local/bin/uv venv ${LOCAL_VENV_DIR} --python ${PYTHON}
-	~/.local/bin/uv pip install --python ${LOCAL_VENV_DIR}/bin/python -r backend_django/requirements/local.txt
+	~/.local/bin/uv pip install --python ${LOCAL_VENV_DIR}/bin/python -r pyproject.toml --extra dev --extra test
 	@( \
 		source ${LOCAL_VENV_DIR}/bin/activate; \
 		if [ -d .git ]; then pre-commit install; else echo "pre-commit not installed since no git repository"; fi;\

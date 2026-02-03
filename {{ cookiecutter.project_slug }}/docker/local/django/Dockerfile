@@ -29,8 +29,8 @@ RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-ge
 # 1. Copy the uv binary
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 2. Copy requirements
-COPY ./backend_django/requirements /requirements
+# 2. Copy pyproject.toml and uv.lock for dependency installation
+COPY pyproject.toml uv.lock ./
 
 # 3. Install dependencies
 # - We use --mount=type=cache to speed up re-builds
@@ -40,7 +40,7 @@ RUN --mount=type=cache,id=pip-cache-$TARGETPLATFORM,target=/root/.cache/uv  \
     if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
         export UV_EXTRA_INDEX_URL="https://www.piwheels.org/simple"; \
     fi && \
-    uv pip install --system -r /requirements/local.txt
+    uv pip install --system -r pyproject.toml --extra dev --extra test
 
 
 # Setup Users and Groups
