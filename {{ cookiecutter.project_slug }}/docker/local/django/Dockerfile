@@ -29,8 +29,8 @@ RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-ge
 # 1. Copy the uv binary
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 2. Copy pyproject.toml and uv.lock for dependency installation
-COPY pyproject.toml uv.lock ./
+# 2. Copy pyproject.toml for dependency installation
+COPY pyproject.toml ./
 
 # 3. Install dependencies
 # - We use --mount=type=cache to speed up re-builds
