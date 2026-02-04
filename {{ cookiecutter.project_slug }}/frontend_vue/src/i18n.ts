@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 import en from "./locales/en.json";
 //import de from "./locales/de.json";
 
-export const messages = {
+export const messages: Record<string, Record<string, string>> = {
   'en': en,
   //'de': de,
 }

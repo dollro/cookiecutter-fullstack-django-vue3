@@ -1,22 +1,12 @@
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 
 // axios settings
 axios.defaults.baseURL = import.meta.env.VITE_APP_API_ROOT
-//axios.defaults.baseURL = process.env.VITE_APP_API_ROOT;
-//axios.defaults.xsrfHeaderName = "X-CSRFToken";
-//axios.defaults.xsrfCookieName = 'csrftoken';
-
-//axios.defaults.headers['Content-Type'] = 'application/json';
 
 
 const api = axios.create({});
 
-/**
- * Helper function to trigger a file download from a blob response
- * @param {Blob} blob - The file blob to download
- * @param {string} filename - The filename to save as
- */
-function triggerBlobDownload(blob, filename) {
+function triggerBlobDownload(blob: Blob, filename: string): void {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -27,13 +17,7 @@ function triggerBlobDownload(blob, filename) {
     window.URL.revokeObjectURL(url);
 }
 
-/**
- * Extract filename from Content-Disposition header or use fallback
- * @param {Object} response - Axios response object
- * @param {string} fallbackName - Fallback filename if header not present
- * @returns {string} The extracted or fallback filename
- */
-function getFilenameFromResponse(response, fallbackName) {
+function getFilenameFromResponse(response: AxiosResponse, fallbackName: string): string {
     const contentDisposition = response.headers['content-disposition'];
     if (contentDisposition) {
         // Try to extract filename from header
@@ -48,46 +32,41 @@ function getFilenameFromResponse(response, fallbackName) {
 
 export default {
 
-    setAuthHeader(token) {
+    setAuthHeader(token: string): void {
         api.defaults.headers.common['Authorization'] = 'Token ' + token
     },
 
-    unsetAuthHeader() {
+    unsetAuthHeader(): void {
         api.defaults.headers.common['Authorization'] = ''
     },
 
-    createUser(formdata) {
+    createUser(formdata: Record<string, string>): Promise<AxiosResponse> {
         return api.post("/registration/", formdata)
     },
 
-    getUserData() {
+    getUserData(): Promise<AxiosResponse> {
         return api.get("/user/")
     },
 
-    login(formdata) {
+    login(formdata: Record<string, string>): Promise<AxiosResponse> {
         return api.post("/login/", formdata)
 
     },
 
-    logout() {
+    logout(): Promise<AxiosResponse> {
         return api.post("/logout/")
     },
 
-    stopWakeup() {
+    stopWakeup(): Promise<AxiosResponse> {
         return api.post("/actions/stopwakeup/")
     },
 
 
-    getEvents() {
+    getEvents(): Promise<AxiosResponse> {
         return api.get('/events/')
     },
 
-    /**
-     * Generic authenticated file download by URL path
-     * @param {string} urlPath - The API URL path to download from
-     * @param {string} fallbackFilename - Fallback filename if not provided in response headers
-     */
-    async downloadFileByPath(urlPath, fallbackFilename = 'download') {
+    async downloadFileByPath(urlPath: string, fallbackFilename = 'download'): Promise<void> {
         // Ensure the path starts with /
         const normalizedPath = urlPath.startsWith('/') ? urlPath : `/${urlPath}`;
         const response = await api.get(normalizedPath, {

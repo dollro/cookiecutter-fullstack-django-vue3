@@ -146,7 +146,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 
@@ -170,12 +170,12 @@ const loginData = reactive({
 })
 
 // Local validation errors
-const errors = ref({})
+const errors = ref<Record<string, string>>({})
 const successMessage = ref('')
 
 // Validation function for registration
 const validateRegisterForm = () => {
-  const newErrors = {}
+  const newErrors: Record<string, string> = {}
   
   // Username validation
   if (!formData.username.trim()) {
@@ -214,7 +214,7 @@ const validateRegisterForm = () => {
 
 // Validation function for login
 const validateLoginForm = () => {
-  const newErrors = {}
+  const newErrors: Record<string, string> = {}
   
   // Username/email validation
   if (!loginData.username.trim()) {
@@ -310,7 +310,7 @@ const handleLogout = async () => {
 }
 
 // Switch between login and register modes
-const switchMode = (event) => {
+const switchMode = (event: MouseEvent) => {
   event.preventDefault()
   
   // Clear any messages and errors

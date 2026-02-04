@@ -27,7 +27,7 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       input: {
-        main: resolve('./src/main.js'),
+        main: resolve('./src/main.ts'),
       },
       output: {
         // NOTE: dont change this assetsDir path setting "assets"! 
