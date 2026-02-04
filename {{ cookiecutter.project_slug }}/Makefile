@@ -3,11 +3,8 @@ SHELL:=/bin/bash
 PYTHON=python3.12
 
 PROJECT_NAME={{cookiecutter.project_slug}}
-LOCAL_VENVS_DIR=~/.virtualenvs
+LOCAL_VENV_DIR=.venv
 LOCAL_VENV_ENV=.envs/.local-venv/.django
-
-
-LOCAL_VENV_DIR := ${LOCAL_VENVS_DIR}/${PROJECT_NAME}
 PRODUCTION_VENV_DIR := ${PRODUCTION_VENVS_DIR}/${PROJECT_NAME}
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR := $(dir $(MKFILE_PATH))
@@ -32,11 +29,10 @@ local_venv_sw_setup:
 	curl -LsSf https://astral.sh/uv/install.sh | sh
 
 	mkdir -p ./log
-	mkdir -p ${LOCAL_VENVS_DIR}
 	chmod u+x ./cert/mkcert-amd64
 	./cert/mkcert-amd64 -cert-file ./cert/cert.pem -key-file ./cert/key.pem localhost 127.0.0.1 $(uname -n) $(hostname -I | awk '{ print $1 }')
-	~/.local/bin/uv venv ${LOCAL_VENV_DIR} --python ${PYTHON}
-	~/.local/bin/uv pip install --python ${LOCAL_VENV_DIR}/bin/python -r backend_django/requirements/local.txt
+	uv venv --python ${PYTHON}
+	uv pip install --python ${LOCAL_VENV_DIR}/bin/python -r pyproject.toml --extra dev --extra test
 	@( \
 		source ${LOCAL_VENV_DIR}/bin/activate; \
 		if [ -d .git ]; then pre-commit install; else echo "pre-commit not installed since no git repository"; fi;\

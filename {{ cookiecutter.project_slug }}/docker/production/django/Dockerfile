@@ -68,8 +68,8 @@ RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-ge
 # 1. Copy the uv binary
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 2. Copy requirements
-COPY ./backend_django/requirements /requirements
+# 2. Copy pyproject.toml for dependency installation
+COPY pyproject.toml ./
 
 # 3. Install dependencies
 # - We use --mount=type=cache to speed up re-builds
@@ -79,8 +79,7 @@ RUN --mount=type=cache,id=pip-cache-$TARGETPLATFORM,target=/root/.cache/uv  \
     if [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then \
         export UV_EXTRA_INDEX_URL="https://www.piwheels.org/simple"; \
     fi && \
-    uv pip install --system -r /requirements/production.txt \
-    && rm -rf /requirements
+    uv pip install --system -r pyproject.toml --extra production
 
 
 # Setup Users and Groups
@@ -108,6 +107,10 @@ RUN chmod +x /entrypoint
 COPY --chown=$UNAME:$UNAME ./docker/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
+
+COPY --chown=$UNAME:$UNAME ./docker/django/seed_fixtures.sh /seed_fixtures.sh
+RUN sed -i 's/\r$//g' /seed_fixtures.sh
+RUN chmod +x /seed_fixtures.sh
 
 COPY --chown=$UNAME:$UNAME ./docker/production/django/celery/worker/start /start-celeryworker
 RUN sed -i 's/\r$//g' /start-celeryworker

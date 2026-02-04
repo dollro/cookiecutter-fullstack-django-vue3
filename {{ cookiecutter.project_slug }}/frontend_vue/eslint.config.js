@@ -1,10 +1,12 @@
 import js from '@eslint/js'
 import vue from 'eslint-plugin-vue'
+import tseslint from '@typescript-eslint/eslint-plugin'
+import tsparser from '@typescript-eslint/parser'
 
 export default [
   {
     name: 'app/files-to-lint',
-    files: ['**/*.{js,mjs,jsx,vue}'],
+    files: ['**/*.{js,mjs,jsx,ts,tsx,vue}'],
   },
 
   {
@@ -16,16 +18,52 @@ export default [
   ...vue.configs['flat/essential'],
 
   {
+    name: 'app/typescript-files',
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+  },
+
+  {
     name: 'app/vue-rules',
     files: ['**/*.vue'],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 'latest',
+        parser: tsparser,
       },
     },
     rules: {
       'vue/multi-word-component-names': 'off',
       'vue/no-reserved-component-names': 'off',
+      'vue/valid-template-root': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
+    plugins: {
+      '@typescript-eslint': tseslint,
+    },
+  },
+
+  {
+    name: 'app/node-config-files',
+    files: ['vite.config.ts'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+      },
     },
   },
 

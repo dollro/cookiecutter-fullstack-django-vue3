@@ -6,29 +6,6 @@ set -o nounset
 
 python backend_django/manage.py makemigrations
 python backend_django/manage.py migrate
-
-# START handling initial database fixtures
-# Check if the setup_complete flag is set to True. If not, apply initial fixtures once
-# Capture the output of the Python script into a variable
-SETUP_STATUS=$(python backend_django/manage.py shell -c "from backend_django.site_config.models import SetupFlag; \
-  print('true') if SetupFlag.objects.filter(setup_complete=True).exists() else print('false')")
-# Check the value of the variable
-if [ "$SETUP_STATUS" = "false" ]; then
-  echo "Initial setup flag not found. Running data load of initial db fixtures...."
-  # Load fixtures
-  find ./backend_django/fixtures -name '*.json' -print0 | xargs -0 -r python backend_django/manage.py loaddata
-  # After successfully loading data, create the flag in the database
-  # to prevent this block from running again.
-  echo "Marking setup as complete."
-  python backend_django/manage.py shell -c "from backend_django.site_config.models import SetupFlag; \
-    SetupFlag.objects.create(setup_complete=True)"
-
-else
-  echo "Initial setup flag found. Skipping data load of db fixtures."
-fi
-# END handling initial database fixtures
-
-python backend_django/manage.py create_or_update_superuser   # env variables need to be set !
-
+/seed_fixtures.sh --guard
+python backend_django/manage.py create_or_update_superuser
 python backend_django/manage.py runserver_plus 0.0.0.0:5000
-#python backend_django/manage.py runserver_plus --cert-file cert/cert.pem --key-file cert/key.pem  0.0.0.0:5000

@@ -232,7 +232,7 @@ precommit:
     - if: >
         ( $CI_COMMIT_BRANCH =~ /^([0-9]+-)?fix.*$/ ||
         $CI_COMMIT_BRANCH =~ /^([0-9]+-)?feat.*$/ ||
-        $CI_COMMIT_BRANCH =~ /([0-9]+-)?test.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?test.*$/ ||
         $CI_COMMIT_BRANCH =~ /^([0-9]+-)?chore.*$/ ||
         $CI_COMMIT_BRANCH == "develop" ||
         $CI_COMMIT_BRANCH == "staging" ||
@@ -260,15 +260,14 @@ test:
   stage: test
   extends: .dind-template
   rules:
-    #- if: $CI_COMMIT_BRANCH =~ /^issue-.*$/m || $CI_COMMIT_BRANCH =~ /^feature-.*$/ || $CI_COMMIT_BRANCH =~ /^dev-.*$/ || $CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "master"
     - if: >
-        $CI_COMMIT_BRANCH != "dev-e2c" && 
-        ( $CI_COMMIT_BRANCH =~ /^issue-.*$/m ||
-        $CI_COMMIT_BRANCH =~ /^feature-.*$/ ||
-        $CI_COMMIT_BRANCH =~ /^dev-.*$/ ||
+        ( $CI_COMMIT_BRANCH =~ /^([0-9]+-)?fix.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?feat.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?test.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?chore.*$/ ||
         $CI_COMMIT_BRANCH == "develop" ||
         $CI_COMMIT_BRANCH == "staging" ||
-        $CI_COMMIT_BRANCH == "master" )
+        $CI_COMMIT_BRANCH == "main" )
 
   cache:
     paths:
@@ -301,8 +300,9 @@ test:
     # TEST
     #
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm node-vue bash -c "pnpm --dir ./frontend_vue run build -- --mode production"
-    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python backend_django/manage.py migrate"
-    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "if [ -n "$(ls -A backend_django/fixtures 2>/dev/null)" ]; then python backend_django/manage.py loaddata backend_django/fixtures/*.json; fi"
+    # Initialize database (migrations + seed fixtures)
+    - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run --rm django bash -c "python backend_django/manage.py migrate && /seed_fixtures.sh"
+    # Run tests
     - env IMAGE_BASENAME=$IMAGE_BASENAME IMAGETAG=$IMAGETAG docker compose -f test-ci.yml run django pytest --junitxml=test_report.xml
   artifacts:
     when: always
@@ -522,7 +522,7 @@ build_images_for_deployment_armhf:
   rules:
     - if: >
         ($BUILD_ARMHF == "true") &&
-        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "dev-e2c")
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging")
   script:
     # Choose the appropriate bake file based on BUILD_TARGET
     - |
@@ -555,7 +555,7 @@ build_images_for_deployment_arm64:
   rules:
     - if: >
         ($BUILD_ARM64 == "true") &&
-        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "dev-e2c")
+        ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == "staging")
   script:
     # Choose the appropriate bake file based on BUILD_TARGET
     - |

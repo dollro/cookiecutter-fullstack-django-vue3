@@ -1,4 +1,4 @@
-import {createApp} from "vue";
+import { createApp, type Component, type App } from "vue";
 import axios from 'axios'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
@@ -19,7 +19,7 @@ import i18n from '../i18n'
 
 
 
-export const createAppInEl = (options, selector) => {
+export const createAppInEl = (options: Component, selector: string): App => {
     const app = createApp(options);
     app.use(i18n);
     

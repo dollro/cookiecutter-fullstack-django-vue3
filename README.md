@@ -144,13 +144,14 @@ your_project/
 │   │   ├── api/             # User API endpoints
 │   │   └── models.py        # Custom User model
 │   ├── site_config/         # Site configuration app (SetupFlag model)
-│   ├── requirements/        # Python dependencies
+│   ├── requirements/        # DEPRECATED - kept for backwards compatibility
 │   ├── fixtures/            # Django fixtures
 │   ├── manage.py            # Django management script
 │   ├── models.py            # Database models
 │   ├── tasks.py             # Celery tasks
 │   ├── static/              # Static files (+ built Vue assets)
 │   └── templates/           # Django templates
+├── pyproject.toml           # Python dependencies & tool config (single source of truth)
 ├── frontend_vue/            # Self-contained Vue.js frontend
 │   ├── src/
 │   │   ├── components/      # Vue components

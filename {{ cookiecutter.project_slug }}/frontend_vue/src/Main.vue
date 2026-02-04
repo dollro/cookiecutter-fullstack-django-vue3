@@ -17,8 +17,7 @@ html { scroll-behavior: smooth; }
 
 </style>
 
-<script>
-import { useAuthStore } from './stores/auth';
+<script lang="ts">
 import './assets/css/tailwind.css';
 import './assets/scss/main.scss';
 

@@ -2,50 +2,58 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '../rest/rest'
 
+export interface User {
+  username: string
+  email: string
+  [key: string]: unknown
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // State
-  const user = ref(null)
-  const token = ref(null)
-  const isLoading = ref(false)
-  const error = ref(null)
+  const user = ref<User | null>(null)
+  const token = ref<string | null>(null)
+  const isLoading = ref<boolean>(false)
+  const error = ref<string | null>(null)
 
   // Getters
   const isAuthenticated = computed(() => !!token.value)
   const username = computed(() => user.value?.username || '')
 
   // Actions
-  async function login(credentials) {
+  async function login(credentials: Record<string, string>) {
     isLoading.value = true
     error.value = null
-    
+
     try {
       const response = await api.login(credentials)
       token.value = response.data.key
       api.setAuthHeader(token.value)
-      
+
       // Fetch user data after successful login
       await fetchUser()
-      
+
       return response
-    } catch (err) {
-      error.value = err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || 'Login failed'
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { detail?: string; non_field_errors?: string[] } } }
+      error.value = axiosErr.response?.data?.detail || axiosErr.response?.data?.non_field_errors?.[0] || 'Login failed'
       throw err
     } finally {
       isLoading.value = false
     }
   }
 
-  async function register(userData) {
+  async function register(userData: Record<string, string>) {
     isLoading.value = true
     error.value = null
-    
+
     try {
       const response = await api.createUser(userData)
       return response
-    } catch (err) {
-      error.value = err.response?.data?.detail || 
-                   err.response?.data?.non_field_errors?.[0] || 
-                   Object.values(err.response?.data || {}).flat().join(', ') ||
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { detail?: string; non_field_errors?: string[]; [key: string]: unknown } } }
+      error.value = axiosErr.response?.data?.detail ||
+                   axiosErr.response?.data?.non_field_errors?.[0] ||
+                   Object.values(axiosErr.response?.data || {}).flat().join(', ') ||
                    'Registration failed'
       throw err
     } finally {
@@ -56,10 +64,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     isLoading.value = true
     error.value = null
-    
+
     try {
       await api.logout()
-    } catch (err) {
+    } catch (err: unknown) {
       console.warn('Logout API call failed:', err)
       // Continue with local logout even if API call fails
     } finally {
@@ -73,18 +81,19 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchUser() {
     if (!token.value) return
-    
+
     isLoading.value = true
     error.value = null
-    
+
     try {
       const response = await api.getUserData()
       user.value = response.data
       return response
-    } catch (err) {
-      error.value = err.response?.data?.detail || 'Failed to fetch user data'
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { detail?: string } } }
+      error.value = axiosErr.response?.data?.detail || 'Failed to fetch user data'
       // If token is invalid, clear auth state
-      if (err.response?.status === 401) {
+      if (axiosErr.response?.status === 401) {
         await logout()
       }
       throw err
@@ -114,11 +123,11 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     isLoading,
     error,
-    
+
     // Getters
     isAuthenticated,
     username,
-    
+
     // Actions
     login,
     register,
