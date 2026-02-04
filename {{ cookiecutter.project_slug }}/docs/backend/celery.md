@@ -1,138 +1,6 @@
-# Backend Technical Documentation (Django)
+# Celery Async Processing
 
-This document covers Django-specific details for the fullstack Django Vite/Vue3 project template.
-
-> **Related Documentation:**
-> - [TECHSTACK.md](TECHSTACK.md) - General stack overview, infrastructure, DevOps
-> - [TECHSTACK-frontend.md](TECHSTACK-frontend.md) - Vue.js frontend documentation
-
----
-
-## Table of Contents
-
-1. [Backend (Django)](#1-backend-django)
-2. [Async Processing (Celery)](#2-async-processing-celery)
-
-**Deep Dive Sections:**
-
-3. [Container Startup Process](#3-deep-dive-container-startup-process)
-4. [Celery Task Processing](#4-deep-dive-celery-task-processing)
-5. [URL Routing Architecture](#5-deep-dive-url-routing-architecture)
-
----
-
-## 1. Backend (Django)
-
-### Project Structure
-
-```
-<project>/
-├── backend_django/           # Main Django application
-│   ├── models.py             # Database models
-│   ├── tasks.py              # Celery task definitions
-│   ├── api/
-│   │   ├── views.py          # REST API endpoints
-│   │   ├── serializers.py    # DRF serializers
-│   │   └── urls.py           # API URL routing
-│   ├── users/                # User management app
-│   │   ├── models.py         # Custom User model
-│   │   ├── admin.py          # User admin configuration
-│   │   ├── forms.py          # User forms
-│   │   ├── tasks.py          # User-related Celery tasks
-│   │   ├── adapters.py       # AllAuth adapters
-│   │   └── api/
-│   │       ├── views.py      # User API ViewSet
-│   │       └── serializers.py # User serializers
-│   ├── site_config/          # Site configuration app
-│   │   └── models.py         # SetupFlag model
-│   ├── utils/                # Business logic utilities
-│   ├── migrations/           # Database migrations
-│   ├── media/                # User uploads
-│   ├── static/               # Static files (includes built Vue assets)
-│   ├── templates/            # Django templates
-│   ├── config/               # Django project configuration
-│   │   ├── settings/
-│   │   │   ├── base.py       # Common settings
-│   │   │   ├── local.py      # Development settings
-│   │   │   ├── production.py # Production settings
-│   │   │   └── test.py       # Test settings
-│   │   ├── urls.py           # Root URL configuration
-│   │   ├── api_router.py     # DRF router configuration
-│   │   ├── celery_app.py     # Celery configuration
-│   │   └── wsgi.py           # WSGI entry point
-│   ├── requirements/         # DEPRECATED - kept for backwards compatibility
-│   │   ├── base.txt
-│   │   ├── local.txt
-│   │   └── production.txt
-│   ├── fixtures/             # Database fixtures
-│   └── manage.py             # Django management script
-├── pyproject.toml              # Python dependencies & tool config (single source of truth)
-├── frontend_vue/               # Vue.js frontend application
-└── docker/                     # Docker configuration files
-```
-
-### Settings Hierarchy
-
-```
-backend_django/config/settings/
-├── base.py        # Shared settings (loaded by all environments)
-├── local.py       # extends base.py → DEBUG=True, dev tools
-├── production.py  # extends base.py → security, performance
-└── test.py        # extends base.py → test configuration
-```
-
-Environment determined by `DJANGO_SETTINGS_MODULE`:
-- Local: `backend_django.config.settings.local`
-- Production: `backend_django.config.settings.production`
-
-### Authentication System
-
-- **dj-rest-auth** + **django-allauth** for authentication
-- Token-based authentication (DRF TokenAuthentication)
-- Email as primary identifier (no username required)
-
-```python
-# REST Framework configuration
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
-    ),
-}
-```
-
-### Database
-
-- PostgreSQL with `psycopg` 3.x driver
-- Atomic requests enabled by default
-- Custom User model recommended
-
-### API Endpoint Patterns
-
-```
-Authentication:
-POST   /api/v1/auth/login/              # Login
-POST   /api/v1/auth/logout/             # Logout
-POST   /api/v1/auth/registration/       # Register
-
-Feature Endpoints (example patterns):
-POST   /api/v1/<feature>/create/        # Create resource
-GET    /api/v1/<feature>/status/<id>/   # Check status
-GET    /api/v1/<feature>/results/<id>/  # Get results
-GET    /api/v1/<feature>/list/          # Paginated list
-DELETE /api/v1/<feature>/delete/<id>/   # Delete resource
-
-System:
-GET    /api/v1/version-info/            # App version & environment
-```
-
----
-
-## 2. Async Processing (Celery)
-
-### Architecture
+## Architecture
 
 ```
 ┌──────────────┐      ┌─────────────┐      ┌──────────────────┐
@@ -147,7 +15,7 @@ GET    /api/v1/version-info/            # App version & environment
                       └─────────────┘
 ```
 
-### Configuration
+## Configuration
 
 ```python
 # backend_django/config/settings/base.py
@@ -157,7 +25,7 @@ CELERY_TASK_TIME_LIMIT = 60 * 60  # 1 hour max
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 ```
 
-### Task Pattern
+## Task Pattern
 
 ```python
 # backend_django/tasks.py
@@ -171,21 +39,19 @@ def process_data_task(self, request_id):
     # Heavy computations
 ```
 
-### Status Flow
+## Status Flow
 
 ```
 pending → processing → completed
                     ↘ failed
 ```
 
-### Monitoring
+## Monitoring
 
 - **Flower** (http://localhost:5555): Real-time task monitoring
 - **Celery logs**: `docker compose -f local.yml logs celeryworker`
 
----
-
-## 3. Deep Dive: Container Startup Process
+## Container Startup Process
 
 ### Django Container Lifecycle
 
@@ -257,11 +123,7 @@ if not SetupFlag.objects.filter(setup_complete=True).exists():
 | **Fixtures** | All fixtures from `backend_django/fixtures/` including `dev_*` | Excludes `dev_*` prefix |
 | **Static files** | Not collected (Vite serves) | `collectstatic` run |
 
----
-
-## 4. Deep Dive: Celery Task Processing
-
-### Task Execution Flow
+## Task Execution Flow
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
@@ -301,7 +163,7 @@ if not SetupFlag.objects.filter(setup_complete=True).exists():
 └───────────────────────────────────────────────────────────────────────┘
 ```
 
-### Celery Configuration Details
+## Celery Configuration Details
 
 ```python
 # backend_django/config/celery_app.py
@@ -317,14 +179,14 @@ CELERY_TASK_TIME_LIMIT = 60 * 60                   # 1 hour max per task
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 ```
 
-### Worker Start Command
+## Worker Start Command
 
 ```bash
 # docker/local/django/celery/worker/start
 celery -A config.celery_app worker -l INFO
 ```
 
-### Task Implementation Pattern
+## Task Implementation Pattern
 
 ```python
 # backend_django/tasks.py
@@ -367,7 +229,7 @@ def process_data_task(self, request_id):
         cleanup_temporary_files(request)
 ```
 
-### Status Polling Pattern (Frontend)
+## Status Polling Pattern (Frontend)
 
 ```javascript
 // Poll for task completion
@@ -386,48 +248,3 @@ async function pollStatus(requestId) {
   }, 2000);  // Poll every 2 seconds
 }
 ```
-
----
-
-## 5. Deep Dive: URL Routing Architecture
-
-### URL Configuration Hierarchy
-
-```
-backend_django/config/urls.py (Root)
-├── ""                    → backend_django.urls (frontend views)
-├── "admin/"              → Django Admin
-├── "accounts/"           → allauth.urls (social auth)
-│
-└── API URLs (api/v1/):
-    ├── ""                → dj_rest_auth.urls
-    │   ├── login/
-    │   ├── logout/
-    │   ├── user/
-    │   └── password/
-    │
-    ├── "registration/"   → dj_rest_auth.registration.urls
-    │
-    ├── ""                → backend_django.config.api_router (DRF routers)
-    │
-    └── ""                → backend_django.api.urls
-        ├── <feature>/create/
-        ├── <feature>/status/<id>/
-        ├── <feature>/results/<id>/
-        ├── <feature>/list/
-        ├── <feature>/download-*/
-        └── version/
-```
-
-### Trailing Slash Flexibility
-
-All API endpoints accept both formats using `re_path` with optional trailing slash:
-
-```python
-re_path(r"^<feature>/create/?$", views.create_resource)
-#                          ^^^ Optional trailing slash
-```
-
----
-
-**Last Updated:** January 2026

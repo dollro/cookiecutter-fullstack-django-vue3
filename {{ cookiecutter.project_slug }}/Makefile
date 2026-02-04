@@ -183,6 +183,13 @@ local_docker_cleanupall:
 	docker container prune
 	docker volume prune -a
 
+### DOCUMENTATION
+docs:
+	mkdocs build
+
+docs-serve:
+	mkdocs serve
+
 ########################################################################################################
 ### build DOCKER images for production locally (i.e. not via CI) - witjout any registry but local caching in .buidx-cache
 ########################################################################################################

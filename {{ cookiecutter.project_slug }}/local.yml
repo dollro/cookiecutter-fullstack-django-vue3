@@ -36,21 +36,6 @@ services:
       - ./.envs/.local/.django
 
 
- #  docs:
- #    image: {{cookiecutter.project_slug}}_local_docs
- #    #container_name: docs
- #    build:
- #      context: .
- #      dockerfile: ./docker/local/docs/Dockerfile
- #    env_file:
- #      - ./.envs/.local/.django
- #    volumes:
- #      - ./docs:/docs:z
- #      - ./config:/app/config:z
- #      - ./backend_django:/app/backend_django:z
- #    ports:
- #      - "7000:7000"
- #
   mailhog:
     image: mailhog/mailhog:v1.0.0
     ports:

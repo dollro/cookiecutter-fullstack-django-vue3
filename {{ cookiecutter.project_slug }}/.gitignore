@@ -84,8 +84,8 @@ coverage.xml
 *.pot
 
 
-# Sphinx documentation
-docs/_build/
+# MkDocs documentation
+docs-site/
 
 # PyBuilder
 target/

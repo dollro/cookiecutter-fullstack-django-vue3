@@ -1,0 +1,39 @@
+site_name: "{{ cookiecutter.project_name }} Documentation"
+docs_dir: docs
+site_dir: docs-site
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - tables
+  - attr_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Development:
+      - Environment: development/environment.md
+      - Docker: development/docker.md
+      - Local Venv: development/local-venv.md
+      - Workflows: development/workflows.md
+  - Backend:
+      - Django: backend/django.md
+      - Celery: backend/celery.md
+  - Frontend:
+      - Vue Structure: frontend/vue-structure.md
+      - State & Auth: frontend/state-and-auth.md
+  - DevOps:
+      - Integration: devops/integration.md
+      - CI/CD: devops/cicd.md
+      - Deployment: devops/deployment.md
+      - Docker Production: devops/docker-production.md
+      - Security: devops/security.md
