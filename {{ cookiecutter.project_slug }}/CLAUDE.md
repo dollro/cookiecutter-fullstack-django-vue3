@@ -43,7 +43,8 @@ Domain: `{{ cookiecutter.domain_name }}`
 │   │   ├── components/          # Vue components
 │   │   ├── stores/              # Pinia state management
 │   │   └── rest/rest.ts         # Axios API client
-│   └── vite.config.ts           # Vite configuration
+│   ├── vite.config.ts           # Vite configuration
+│   └── playwright.config.ts     # Playwright E2E test configuration
 ├── docker/                      # Dockerfiles (local + production)
 ├── docs/                        # MkDocs documentation
 ├── .envs/                       # Environment files (gitignored)
@@ -79,9 +80,12 @@ make local_venv_celery_start      # Start Celery (separate terminal)
 ### Testing and linting
 
 ```bash
-docker compose -f local.yml run --rm django pytest    # Tests (Docker)
-pytest                                                 # Tests (venv)
-pre-commit run --all-files                             # Lint + format
+docker compose -f local.yml run --rm django pytest    # Backend tests (Docker)
+pytest                                                 # Backend tests (venv)
+pnpm --dir ./frontend_vue run type-check              # TypeScript type checking
+pnpm --dir ./frontend_vue run lint --no-fix           # Frontend lint check
+pnpm --dir ./frontend_vue run test:e2e                # Playwright E2E tests
+pre-commit run --all-files                             # All pre-commit hooks
 ```
 
 ### Documentation
@@ -98,7 +102,7 @@ make docs-serve                   # Serve MkDocs locally
 | Language | Python 3.13 | Python 3.13 | TypeScript |
 | Port | 8000 | 8001 | 3000 |
 | Package Manager | uv (via pyproject.toml) | uv (shared pyproject.toml) | pnpm |
-| Testing | pytest + factory_boy | pytest + pytest-asyncio | Vitest (planned) |
+| Testing | pytest + factory_boy | pytest + pytest-asyncio | Vitest (unit), Playwright (E2E) |
 | Build Tool | Docker | Docker | Vite |
 
 **Important**:
@@ -130,6 +134,8 @@ make docs-serve                   # Serve MkDocs locally
 - **API client:** Axios at `frontend_vue/src/rest/rest.ts`
 - **Build output:** `backend_django/static/vue/` (django-vite integration)
 - **Dev server:** port 3000 with HMR
+- **E2E tests:** Playwright at `frontend_vue/e2e/`, config at `frontend_vue/playwright.config.ts`
+- **E2E base URL:** `E2E_BASE_URL` env var (defaults to `http://localhost:8000`)
 
 ## Code Style
 
@@ -153,7 +159,7 @@ make docs-serve                   # Serve MkDocs locally
 | `local.yml` | Docker Compose dev config |
 | `production.yml` | Docker Compose production config |
 | `pyproject.toml` | Python deps + tool config (single source of truth) |
-| `.gitlab-ci.yml` | CI/CD pipeline (lint, test, build, release) |
+| `.gitlab-ci.yml` | CI/CD pipeline (lint, frontend_lint, test, build, release) |
 | `docs/` | Full technical documentation (MkDocs Material) |
 
 ## Detailed Documentation

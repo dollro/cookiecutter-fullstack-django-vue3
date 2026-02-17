@@ -22,6 +22,7 @@ frontend_vue/
 │   ├── assets/               # Static assets (css, scss, img)
 │   └── locales/              # i18n translation files
 ├── vite.config.js            # Vite configuration
+├── playwright.config.ts      # Playwright E2E test configuration
 ├── package.json              # Dependencies
 ├── .env.development          # Development environment
 ├── .env.production           # Production environment

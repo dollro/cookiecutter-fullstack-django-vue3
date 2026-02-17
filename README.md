@@ -23,7 +23,8 @@ Originally derived from [cookiecutter-django](https://github.com/cookiecutter/co
 - **REST API** - Token-based authentication with dj-rest-auth
 - **Async Processing** - Celery workers with Redis broker and Flower monitoring
 - **Production Ready** - Multi-stage Docker builds, Traefik reverse proxy, Gunicorn
-- **CI/CD Pipeline** - GitLab CI with lint, test, multi-platform build, and release stages
+- **CI/CD Pipeline** - GitLab CI with lint, test (backend + frontend), multi-platform build, and release stages
+- **E2E Testing** - Playwright infrastructure for end-to-end browser testing
 - **Multi-Architecture** - Supports linux/amd64 and linux/arm64 builds
 
 ---
@@ -118,8 +119,9 @@ docker compose -f local.yml logs celeryworker # Celery only
 ### Before Committing
 
 ```bash
-pre-commit run --all-files                           # Lint & format
-docker compose -f local.yml run --rm django pytest   # Run tests
+pre-commit run --all-files                           # Lint & format (includes frontend ESLint)
+docker compose -f local.yml run --rm django pytest   # Run backend tests
+pnpm --dir ./frontend_vue run type-check             # TypeScript type checking
 ```
 
 ---
@@ -158,6 +160,7 @@ your_project/
 │   │   ├── stores/          # Pinia state management
 │   │   └── rest/rest.js     # Centralized API module
 │   ├── vite.config.js       # Vite configuration
+│   ├── playwright.config.ts # Playwright E2E test configuration
 │   ├── .prettierrc          # Prettier configuration
 │   └── package.json
 ├── docker/                  # Docker configurations
@@ -213,8 +216,8 @@ The template includes a complete GitLab CI/CD configuration:
 
 | Stage | Description | Triggers |
 |-------|-------------|----------|
-| **lint** | Pre-commit hooks (Black, Pylint) | All branches |
-| **test** | pytest in Docker | All branches |
+| **lint** | Pre-commit hooks (Black, Pylint, trailing whitespace) | All branches |
+| **test** | Frontend lint + type-check (Node-only), pytest in Docker | All branches |
 | **build** | Multi-platform Docker images | staging, tags |
 | **build_manifests** | Merge multi-arch manifests | staging, tags |
 | **release** | Push to release registry | tags only |
@@ -259,4 +262,4 @@ This project is open source. See the LICENSE file for details.
 
 ---
 
-**Template Version:** January 2026
+**Template Version:** February 2026

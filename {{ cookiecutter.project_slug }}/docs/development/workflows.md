@@ -15,6 +15,8 @@ make local_docker_update
 
 ## Running Tests
 
+### Backend Tests
+
 ```bash
 # All tests
 docker compose -f local.yml run --rm django pytest
@@ -26,15 +28,38 @@ docker compose -f local.yml run --rm django pytest backend_django/test/test_mode
 docker compose -f local.yml run --rm django pytest --cov=backend_django
 ```
 
+### Frontend E2E Tests (Playwright)
+
+```bash
+# Run all E2E tests
+pnpm --dir ./frontend_vue run test:e2e
+
+# Run with interactive UI
+pnpm --dir ./frontend_vue run test:e2e:ui
+
+# Run against a custom base URL
+E2E_BASE_URL=http://localhost:8000 pnpm --dir ./frontend_vue run test:e2e
+```
+
+E2E tests are configured in `frontend_vue/playwright.config.ts` and test files go in `frontend_vue/e2e/`. Tests run against Chromium, Firefox, and WebKit by default.
+
 ## Code Quality
 
 ```bash
-# Run pre-commit hooks
+# Run all pre-commit hooks (includes frontend-lint hook for ESLint)
 pre-commit run --all-files
 
-# Frontend linting
+# Frontend linting (with auto-fix)
 pnpm --dir ./frontend_vue run lint
+
+# Frontend linting (check only, no fix — same as CI)
+pnpm --dir ./frontend_vue run lint --no-fix
+
+# TypeScript type checking
+pnpm --dir ./frontend_vue run type-check
 ```
+
+**Note:** The `frontend-lint` pre-commit hook runs ESLint on `frontend_vue/` files locally. In CI, this hook is skipped (`SKIP=frontend-lint`) because a dedicated `frontend_lint` CI job handles both type-checking and linting.
 
 ## Git Workflow
 
@@ -127,8 +152,9 @@ docker compose -f local.yml logs django # Django logs only
 ### Before Committing
 
 ```bash
-pre-commit run --all-files              # Lint/format check
-docker compose -f local.yml run --rm django pytest  # Run tests
+pre-commit run --all-files              # Lint/format check (includes frontend ESLint)
+docker compose -f local.yml run --rm django pytest  # Run backend tests
+pnpm --dir ./frontend_vue run type-check            # TypeScript type checking
 ```
 
 ### Debugging

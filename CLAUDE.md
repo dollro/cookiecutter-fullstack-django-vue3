@@ -37,6 +37,7 @@ This is a **Cookiecutter template** that generates fullstack Django 5 + Vue 3 we
 
 - **Backend:** Django 5, DRF 3.16, FastAPI, PostgreSQL 17, Celery 5.5, Redis
 - **Frontend:** Vue 3, Vite 5, Tailwind CSS 4, Pinia, TypeScript
+- **Testing:** pytest + factory_boy (backend), Vitest (unit), Playwright (E2E)
 - **Package managers:** uv (Python), pnpm (Node)
 - **DevOps:** Docker Compose, GitLab CI, multi-arch builds (amd64/arm64)
 
@@ -44,7 +45,7 @@ This is a **Cookiecutter template** that generates fullstack Django 5 + Vue 3 we
 
 - **Python:** Black (line-length 88), Ruff linting, mypy
 - **Frontend:** Prettier, ESLint, TypeScript
-- **Pre-commit hooks** configured in generated projects (`.pre-commit-config.yaml`)
+- **Pre-commit hooks** configured in generated projects (`.pre-commit-config.yaml`), includes `frontend-lint` hook (skipped in CI, handled by dedicated job)
 - **`.editorconfig`:** 4 spaces for Python/RST/INI, 2 spaces for HTML/CSS/JSON/YML, tabs for Makefile
 
 ## Documentation

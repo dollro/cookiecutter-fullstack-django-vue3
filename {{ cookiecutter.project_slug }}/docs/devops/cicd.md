@@ -10,19 +10,20 @@
 
 ## Stage Details
 
-| Stage | Description | Triggers |
-|-------|-------------|----------|
-| **lint** | Pre-commit hooks (Black, Pylint) | All feature branches |
-| **test** | pytest in Docker | All feature branches |
-| **build** | Build Docker images (per platform) | staging, tags |
-| **build_manifests** | Merge multi-arch manifests | staging, tags |
-| **release** | Push to release registry | tags only |
+| Stage | Job | Description | Triggers |
+|-------|-----|-------------|----------|
+| **lint** | `precommit` | Pre-commit hooks (Black, trailing whitespace, YAML check). Skips `frontend-lint` hook — delegated to dedicated CI job | All feature branches |
+| **test** | `frontend_lint` | Frontend type-check (`vue-tsc`) + ESLint lint (`--no-fix`). Lightweight Node-only job, no Docker-in-Docker | All feature branches |
+| **test** | `test` | pytest in Docker (builds images, runs migrations, executes test suite) | All feature branches |
+| **build** | `build_images_*` | Build Docker images per platform (amd64, arm64, armhf) | staging, tags |
+| **build_manifests** | `merge_manifests` | Merge multi-arch manifests | staging, tags |
+| **release** | `release_images` | Push to release registry + manage `latest` tag | tags only |
 
 ## Branch Rules
 
 | Branch Pattern | Stages Run |
 |----------------|------------|
-| `fix/*`, `feat/*`, `test/*`, `chore/*` | lint, test |
+| `fix/*`, `feat/*`, `test/*`, `chore/*` | lint, test (frontend_lint + test) |
 | `staging` | lint, test, build, build_manifests |
 | Tags (e.g., `1.2.3`) | All stages including release |
 

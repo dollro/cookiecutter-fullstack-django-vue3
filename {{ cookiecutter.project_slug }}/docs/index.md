@@ -59,10 +59,10 @@ This cookiecutter was initially derived from https://github.com/cookiecutter/coo
 | [Development > Workflows](development/workflows.md) | Dev workflows, config files, Makefile reference |
 | [Backend > Django](backend/django.md) | Project structure, settings, auth, API, URL routing |
 | [Backend > Celery](backend/celery.md) | Celery architecture, task processing, container startup |
-| [Frontend > Vue Structure](frontend/vue-structure.md) | Vue.js structure, Vite config, components, critical patterns |
+| [Frontend > Vue Structure](frontend/vue-structure.md) | Vue.js structure, Vite config, Playwright E2E, components, critical patterns |
 | [Frontend > State & Auth](frontend/state-and-auth.md) | Pinia store, auth flow, API module |
 | [DevOps > Integration](devops/integration.md) | Frontend-backend integration |
-| [DevOps > CI/CD](devops/cicd.md) | CI/CD pipeline, multi-platform builds, tag management, ARM builds |
+| [DevOps > CI/CD](devops/cicd.md) | CI/CD pipeline, frontend lint job, multi-platform builds, tag management, ARM builds |
 | [DevOps > Deployment](devops/deployment.md) | Production deployment, Traefik |
 | [DevOps > Docker Production](devops/docker-production.md) | Production multi-stage Docker build |
 | [DevOps > Security](devops/security.md) | Security considerations |
