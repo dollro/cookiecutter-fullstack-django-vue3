@@ -9,32 +9,24 @@ This cookiecutter was initially derived from https://github.com/cookiecutter/coo
 │                           CLIENT BROWSER                                 │
 │                     (Vue.js SPA @ localhost:3000)                       │
 └─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    │ REST API (JSON)
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         DJANGO REST API                                  │
-│                        (@ localhost:8000)                                │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │
-│  │   Views     │  │ Serializers │  │   Models    │  │    Tasks    │    │
-│  │  (DRF)      │  │   (DRF)     │  │  (ORM)      │  │  (Celery)   │    │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │
-└─────────────────────────────────────────────────────────────────────────┘
-         │                    │                              │
-         │                    │                              │
-         ▼                    ▼                              ▼
-┌─────────────────┐  ┌─────────────────┐         ┌─────────────────────┐
-│   PostgreSQL    │  │     Redis       │         │    Celery Worker    │
-│   (Database)    │  │  (Cache/Broker) │◄────────│   (Async Tasks)     │
-│   :5432         │  │     :6379       │         │                     │
-└─────────────────┘  └─────────────────┘         └─────────────────────┘
-                                                          │
-                                                          ▼
-                                                 ┌─────────────────────┐
-                                                 │   External APIs     │
-                                                 │  (Third-party       │
-                                                 │   integrations)     │
-                                                 └─────────────────────┘
+                          │                      │
+                          │ REST API (JSON)       │ Async API / WebSocket
+                          ▼                      ▼
+┌──────────────────────────────────┐  ┌──────────────────────────────────┐
+│         DJANGO REST API          │  │        FASTAPI SERVER            │
+│        (@ localhost:8000)        │  │       (@ localhost:8001)         │
+│  ┌──────────┐  ┌──────────┐     │  │  ┌──────────┐  ┌──────────┐     │
+│  │  Views   │  │  Models  │     │  │  │ Routers  │  │  Config  │     │
+│  │  (DRF)   │  │  (ORM)   │     │  │  │ (async)  │  │(pydantic)│     │
+│  └──────────┘  └──────────┘     │  │  └──────────┘  └──────────┘     │
+└──────────────────────────────────┘  └──────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    │
+┌─────────────────┐  ┌─────────────────┐          │
+│   PostgreSQL    │  │     Redis       │◄─────────┘
+│   (Database)    │  │  (Cache/Broker) │
+│   :5432         │  │     :6379       │
+└─────────────────┘  └─────────────────┘
 ```
 
 ## Core Technologies
@@ -46,6 +38,7 @@ This cookiecutter was initially derived from https://github.com/cookiecutter/coo
 | **Backend** | PostgreSQL | 17 | Database |
 | **Backend** | Celery | 5.5.3 | Async task queue |
 | **Backend** | Redis | 7.4 (local) / 5.0 (production) | Cache & message broker |
+| **Backend** | FastAPI | 0.115+ | Async API server (WebSockets, real-time) |
 | **Backend** | uv | latest | Python package manager |
 | **Frontend** | Vue.js | 3.x | UI framework |
 | **Frontend** | Vite | 5.x | Build tool & dev server |

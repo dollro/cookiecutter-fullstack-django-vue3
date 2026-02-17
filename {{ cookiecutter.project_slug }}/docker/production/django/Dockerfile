@@ -4,7 +4,7 @@
 ################################################
 # Client builder: build css, js and vue assets
 ################################################
-FROM node:24-bookworm-slim AS pre-stage
+FROM node:24-trixie-slim AS pre-stage
 ARG TARGETPLATFORM
 ARG APP_VERSION=development
 ARG VITE_APP_VERSION=${APP_VERSION}

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+# Convert log level to lowercase for uvicorn
+LOG_LEVEL=$(echo "${FASTAPI_LOG_LEVEL:-info}" | tr '[:upper:]' '[:lower:]')
+
+echo "Starting FastAPI server..."
+exec uvicorn fastapi_server.main:app \
+    --host 0.0.0.0 \
+    --port 8001 \
+    --reload \
+    --reload-dir /app/fastapi_server \
+    --log-level "$LOG_LEVEL"

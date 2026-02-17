@@ -4,7 +4,7 @@
 
 ```dockerfile
 # STAGE 1: pre-stage (Node.js)
-FROM node:24-bookworm-slim AS pre-stage
+FROM node:24-trixie-slim AS pre-stage
 # - Install pnpm
 # - Copy package.json and install dependencies
 # - Copy entire project

@@ -12,7 +12,7 @@ Originally derived from [cookiecutter-django](https://github.com/cookiecutter/co
 
 | Layer | Technologies |
 |-------|-------------|
-| **Backend** | Django 5.0, Django REST Framework 3.16, PostgreSQL 17, Celery 5.5, Redis 7.4 |
+| **Backend** | Django 5.0, Django REST Framework 3.16, FastAPI, PostgreSQL 17, Celery 5.5, Redis 7.4 |
 | **Frontend** | Vue.js 3, Vite 5, Tailwind CSS 4, Pinia 2.1 |
 | **DevOps** | Docker, Docker Compose v2, GitLab CI/CD, Multi-platform builds (amd64/arm64) |
 

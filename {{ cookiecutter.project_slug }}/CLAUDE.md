@@ -10,10 +10,12 @@ Domain: `{{ cookiecutter.domain_name }}`
 ## Architecture
 
 - **Backend:** Django 5 + Django REST Framework at `backend_django/`
+- **FastAPI:** Async API server at `fastapi_server/` (port 8001)
 - **Frontend:** Vue 3 + Vite + Tailwind CSS at `frontend_vue/`
 - **Async:** Celery workers with Redis broker
 - **Database:** PostgreSQL 17
-- **API base URL:** `/api/v1/`
+- **Django API base URL:** `/api/v1/`
+- **FastAPI docs:** `http://localhost:8001/docs`
 
 ## Project Layout
 
@@ -31,6 +33,10 @@ Domain: `{{ cookiecutter.domain_name }}`
 │   ├── tasks.py                 # Celery tasks
 │   ├── static/                  # Static files (includes built Vue assets)
 │   └── templates/               # Django templates
+├── fastapi_server/              # FastAPI async server
+│   ├── main.py                 # App factory + health checks
+│   ├── config.py               # pydantic-settings configuration
+│   └── routers/                # API route modules
 ├── frontend_vue/                # Vue 3 frontend
 │   ├── src/
 │   │   ├── main.ts              # App entry point
@@ -86,15 +92,14 @@ make docs-serve                   # Serve MkDocs locally
 
 ## Cross-Component Notes
 
-| Aspect | Backend | Frontend |
-|--------|---------|----------|
-| Framework | Django 5, DRF 3.16 | Vue 3, Vite 5 |
-| Language | Python 3.13 | TypeScript |
-| Styling | N/A | Tailwind CSS 4 |
-| State | N/A | Pinia |
-| Package Manager | uv (via pyproject.toml) | pnpm |
-| Testing | pytest + factory_boy | Vitest (planned) |
-| Build Tool | Docker | Vite |
+| Aspect | Backend (Django) | Backend (FastAPI) | Frontend |
+|--------|------------------|-------------------|----------|
+| Framework | Django 5, DRF 3.16 | FastAPI 0.115+ | Vue 3, Vite 5 |
+| Language | Python 3.13 | Python 3.13 | TypeScript |
+| Port | 8000 | 8001 | 3000 |
+| Package Manager | uv (via pyproject.toml) | uv (shared pyproject.toml) | pnpm |
+| Testing | pytest + factory_boy | pytest + pytest-asyncio | Vitest (planned) |
+| Build Tool | Docker | Docker | Vite |
 
 **Important**:
 - Always use `pnpm` for JavaScript dependencies, never npm or yarn.

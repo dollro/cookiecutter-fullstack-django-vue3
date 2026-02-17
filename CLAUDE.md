@@ -35,7 +35,7 @@ This is a **Cookiecutter template** that generates fullstack Django 5 + Vue 3 we
 
 ## Tech Stack (generated project)
 
-- **Backend:** Django 5, DRF 3.16, PostgreSQL 17, Celery 5.5, Redis
+- **Backend:** Django 5, DRF 3.16, FastAPI, PostgreSQL 17, Celery 5.5, Redis
 - **Frontend:** Vue 3, Vite 5, Tailwind CSS 4, Pinia, TypeScript
 - **Package managers:** uv (Python), pnpm (Node)
 - **DevOps:** Docker Compose, GitLab CI, multi-arch builds (amd64/arm64)

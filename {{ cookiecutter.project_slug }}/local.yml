@@ -71,6 +71,25 @@ services:
       - "5555:5555"
     command: /start-flower
 
+  fastapi:
+    build:
+      context: .
+      dockerfile: ./docker/local/fastapi/Dockerfile
+      args:
+        USER_ID: 1000
+        GROUP_ID: 1000
+    image: {{cookiecutter.project_slug}}_local_fastapi
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+    ports:
+      - "8001:8001"
+    command: /start
+
   node-vue:
     build:
       context: .

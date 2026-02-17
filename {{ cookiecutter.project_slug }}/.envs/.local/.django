@@ -35,4 +35,10 @@ POSTGRES_USER={{cookiecutter.project_slug}}
 POSTGRES_PASSWORD=tgdeXwur04BERVcqoBkRzfiAPYQGn1Ph9Z9llsbW1sEuYmG9XRksgZ6uUYqVf7ly
 #lhschoh893ewdd3d3
 
+# FastAPI
+# ------------------------------------------------------------------------------
+FASTAPI_DEBUG=True
+FASTAPI_LOG_LEVEL=INFO
+FASTAPI_ENVIRONMENT=development
+
 # {{cookiecutter.project_slug}}
