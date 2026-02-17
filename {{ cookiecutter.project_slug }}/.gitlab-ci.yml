@@ -253,7 +253,36 @@ precommit:
     - mkdir -p $PRE_COMMIT_CACHE_DIR
     - pip install -q pre-commit
   script:
-    - PRE_COMMIT_HOME=$PRE_COMMIT_CACHE_DIR pre-commit run --show-diff-on-failure --color=always --all-files    
+    - SKIP=frontend-lint PRE_COMMIT_HOME=$PRE_COMMIT_CACHE_DIR pre-commit run --show-diff-on-failure --color=always --all-files
+
+
+frontend_lint:
+  stage: test
+  image: node:24-trixie-slim
+  tags:
+    - docker
+    - linux
+    - amd64
+  rules:
+    - if: >
+        ( $CI_COMMIT_BRANCH =~ /^([0-9]+-)?fix.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?feat.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?test.*$/ ||
+        $CI_COMMIT_BRANCH =~ /^([0-9]+-)?chore.*$/ ||
+        $CI_COMMIT_BRANCH == "develop" ||
+        $CI_COMMIT_BRANCH == "staging" ||
+        $CI_COMMIT_BRANCH == "main" )
+  cache:
+    key: frontend-lint
+    paths:
+      - .cache/pnpm
+  before_script:
+    - npm install -g pnpm
+    - cd frontend_vue
+    - pnpm install --frozen-lockfile
+  script:
+    - pnpm run type-check
+    - pnpm run lint --no-fix
 
 
 test:

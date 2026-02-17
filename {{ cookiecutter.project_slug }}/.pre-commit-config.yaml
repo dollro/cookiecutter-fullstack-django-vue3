@@ -17,15 +17,16 @@ repos:
         language: python
         types: [python]
 
-  # - repo: local
-  #   hooks:
-  #   - id: git-secret
-  #     name: Check
-  #     description: This hook ensures that all translation files share the same set of keys and generates a CSV if there are no issues
-  #     language: script
-  #     entry: ...
+  - repo: local
+    hooks:
+      - id: frontend-lint
+        name: frontend lint (eslint)
+        entry: bash -c 'cd frontend_vue && npx eslint --no-fix'
+        language: system
+        files: ^frontend_vue/.*\.(ts|vue|js)$
+        pass_filenames: false
 
 ci:
   autoupdate_schedule: weekly
-  skip: []
+  skip: [frontend-lint]
   submodules: false

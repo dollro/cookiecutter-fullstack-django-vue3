@@ -8,6 +8,8 @@
     "build": "run-p type-check build-only",
     "preview": "vite preview",
     "test:unit": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "build-only": "vite build --emptyOutDir",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
@@ -30,6 +32,7 @@
     "vue-plugin-django-utils": "^0.1.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "@eslint/js": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",

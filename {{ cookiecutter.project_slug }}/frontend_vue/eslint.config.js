@@ -59,7 +59,7 @@ export default [
 
   {
     name: 'app/node-config-files',
-    files: ['vite.config.ts'],
+    files: ['vite.config.ts', 'playwright.config.ts'],
     languageOptions: {
       globals: {
         process: 'readonly',
