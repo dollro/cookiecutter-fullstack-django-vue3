@@ -89,7 +89,7 @@ make docs-serve                   # Serve MkDocs locally
 | Aspect | Backend | Frontend |
 |--------|---------|----------|
 | Framework | Django 5, DRF 3.16 | Vue 3, Vite 5 |
-| Language | Python 3.12 | TypeScript |
+| Language | Python 3.13 | TypeScript |
 | Styling | N/A | Tailwind CSS 4 |
 | State | N/A | Pinia |
 | Package Manager | uv (via pyproject.toml) | pnpm |
