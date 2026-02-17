@@ -30,6 +30,8 @@ docker compose -f local.yml run --rm django pytest --cov=backend_django
 
 ### Frontend E2E Tests (Playwright)
 
+Playwright runs from the host (requires local Node/pnpm) because it needs browser binaries.
+
 ```bash
 # Run all E2E tests
 pnpm --dir ./frontend_vue run test:e2e
@@ -45,18 +47,18 @@ E2E tests are configured in `frontend_vue/playwright.config.ts` and test files g
 
 ## Code Quality
 
+All commands assume the Docker stack is running (`make local_docker_up`).
+
 ```bash
-# Run all pre-commit hooks (includes frontend-lint hook for ESLint)
+# Pre-commit hooks (run from host — requires pre-commit installed)
 pre-commit run --all-files
 
-# Frontend linting (with auto-fix)
-pnpm --dir ./frontend_vue run lint
+# Frontend linting (via Docker)
+docker compose -f local.yml exec node-vue pnpm run lint           # with auto-fix
+docker compose -f local.yml exec node-vue pnpm run lint --no-fix  # check only (same as CI)
 
-# Frontend linting (check only, no fix — same as CI)
-pnpm --dir ./frontend_vue run lint --no-fix
-
-# TypeScript type checking
-pnpm --dir ./frontend_vue run type-check
+# TypeScript type checking (via Docker)
+docker compose -f local.yml exec node-vue pnpm run type-check
 ```
 
 **Note:** The `frontend-lint` pre-commit hook runs ESLint on `frontend_vue/` files locally. In CI, this hook is skipped (`SKIP=frontend-lint`) because a dedicated `frontend_lint` CI job handles both type-checking and linting.
@@ -152,9 +154,9 @@ docker compose -f local.yml logs django # Django logs only
 ### Before Committing
 
 ```bash
-pre-commit run --all-files              # Lint/format check (includes frontend ESLint)
-docker compose -f local.yml run --rm django pytest  # Run backend tests
-pnpm --dir ./frontend_vue run type-check            # TypeScript type checking
+pre-commit run --all-files                                          # Lint/format (host)
+docker compose -f local.yml run --rm django pytest                  # Backend tests
+docker compose -f local.yml exec node-vue pnpm run type-check      # TypeScript check
 ```
 
 ### Debugging

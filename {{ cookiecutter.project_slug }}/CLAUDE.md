@@ -58,6 +58,8 @@ Domain: `{{ cookiecutter.domain_name }}`
 
 ## Quick Start
 
+> **Docker is the primary development environment.** All commands below use `docker compose -f local.yml`. See `docs/development/local-venv.md` for the venv alternative.
+
 ### Docker workflow (primary)
 
 ```bash
@@ -79,13 +81,23 @@ make local_venv_celery_start      # Start Celery (separate terminal)
 
 ### Testing and linting
 
+All commands assume the Docker stack is running (`make local_docker_up`).
+
 ```bash
-docker compose -f local.yml run --rm django pytest    # Backend tests (Docker)
-pytest                                                 # Backend tests (venv)
-pnpm --dir ./frontend_vue run type-check              # TypeScript type checking
-pnpm --dir ./frontend_vue run lint --no-fix           # Frontend lint check
-pnpm --dir ./frontend_vue run test:e2e                # Playwright E2E tests
-pre-commit run --all-files                             # All pre-commit hooks
+# Backend tests
+docker compose -f local.yml run --rm django pytest
+
+# Frontend type checking
+docker compose -f local.yml exec node-vue pnpm run type-check
+
+# Frontend lint (check only, no fix)
+docker compose -f local.yml exec node-vue pnpm run lint --no-fix
+
+# Playwright E2E tests (run from host — requires local Node/pnpm)
+pnpm --dir ./frontend_vue run test:e2e
+
+# Pre-commit hooks (run from host — requires pre-commit installed)
+pre-commit run --all-files
 ```
 
 ### Documentation

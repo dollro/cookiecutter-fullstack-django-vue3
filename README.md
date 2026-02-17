@@ -119,9 +119,9 @@ docker compose -f local.yml logs celeryworker # Celery only
 ### Before Committing
 
 ```bash
-pre-commit run --all-files                           # Lint & format (includes frontend ESLint)
-docker compose -f local.yml run --rm django pytest   # Run backend tests
-pnpm --dir ./frontend_vue run type-check             # TypeScript type checking
+pre-commit run --all-files                                          # Lint & format (includes frontend ESLint)
+docker compose -f local.yml run --rm django pytest                  # Run backend tests
+docker compose -f local.yml exec node-vue pnpm run type-check      # TypeScript type checking
 ```
 
 ---
@@ -250,8 +250,7 @@ The generated project includes comprehensive technical documentation in the `doc
 To serve the docs locally in the generated project:
 
 ```bash
-pip install mkdocs-material
-mkdocs serve
+make docs-serve
 ```
 
 ---
