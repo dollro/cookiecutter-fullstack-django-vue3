@@ -1,6 +1,8 @@
 # CLAUDE.md — {{ cookiecutter.project_name }}
 
-## Project Identity
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
 
 **{{ cookiecutter.project_name }}** — a fullstack Django + Vue 3 web application.
 Domain: `{{ cookiecutter.domain_name }}`
@@ -47,7 +49,7 @@ Domain: `{{ cookiecutter.domain_name }}`
 └── .pre-commit-config.yaml      # Pre-commit hooks
 ```
 
-## Development Commands
+## Quick Start
 
 ### Docker workflow (primary)
 
@@ -81,6 +83,31 @@ pre-commit run --all-files                             # Lint + format
 ```bash
 make docs-serve                   # Serve MkDocs locally
 ```
+
+## Cross-Component Notes
+
+| Aspect | Backend | Frontend |
+|--------|---------|----------|
+| Framework | Django 5, DRF 3.16 | Vue 3, Vite 5 |
+| Language | Python 3.12 | TypeScript |
+| Styling | N/A | Tailwind CSS 4 |
+| State | N/A | Pinia |
+| Package Manager | uv (via pyproject.toml) | pnpm |
+| Testing | pytest + factory_boy | Vitest (planned) |
+| Build Tool | Docker | Vite |
+
+**Important**:
+- Always use `pnpm` for JavaScript dependencies, never npm or yarn.
+- Python dependencies are managed via `pyproject.toml` (single source of truth).
+- Always use `uv` for Python package management, never pip directly.
+
+## Important: Code Organization Rules
+
+- **Max file size**: Keep files under 600 lines. If a file grows beyond this, refactor into smaller modules.
+- **Single responsibility**: Each module/file should do ONE thing well.
+- **Function length**: Functions should not exceed 60 lines. Extract helpers.
+- **Prefer composition**: Break complex logic into small, composable functions.
+- **Index files for exports**: Use `index.ts` / `__init__.py` to re-export from module directories.
 
 ## Backend Conventions
 
@@ -123,3 +150,12 @@ make docs-serve                   # Serve MkDocs locally
 | `pyproject.toml` | Python deps + tool config (single source of truth) |
 | `.gitlab-ci.yml` | CI/CD pipeline (lint, test, build, release) |
 | `docs/` | Full technical documentation (MkDocs Material) |
+
+## Detailed Documentation
+
+Architecture docs live in `docs/` (MkDocs). Run `make docs-serve` to browse locally.
+
+- **Development guide**: `docs/development/`
+- **Backend deep dives**: `docs/backend/`
+- **Frontend deep dives**: `docs/frontend/`
+- **DevOps & deployment**: `docs/devops/`
