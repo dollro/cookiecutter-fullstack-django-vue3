@@ -167,7 +167,13 @@ your_project/
 ├── local.yml                # Docker Compose for development
 ├── production.yml           # Docker Compose for production
 ├── Makefile                 # Convenience commands
-└── TECHSTACK.md             # Full technical documentation
+├── mkdocs.yml               # Documentation site config
+└── docs/                    # Technical documentation (MkDocs)
+    ├── index.md             # Overview & architecture
+    ├── development/         # Environment, Docker, workflows, local venv
+    ├── backend/             # Django, Celery
+    ├── frontend/            # Vue structure, state & auth
+    └── devops/              # CI/CD, deployment, security
 ```
 
 ---
@@ -229,15 +235,21 @@ git push origin 1.0.0
 
 ## Documentation
 
-For comprehensive technical documentation, see [TECHSTACK.md]({{ cookiecutter.project_slug }}/TECHSTACK.md) in the generated project, which includes:
+The generated project includes comprehensive technical documentation in the `docs/` directory, served via [MkDocs](https://www.mkdocs.org/):
 
-- Detailed stack overview with diagrams
-- Docker architecture and configuration
-- Backend patterns (Django, DRF, Celery)
-- Frontend patterns (Vue 3, Pinia, Tailwind)
-- CI/CD pipeline deep dives
-- Security considerations
-- Alternative local venv development
+| Section | Topics |
+|---------|--------|
+| **Development** | Environment setup, Docker architecture, workflows, local venv alternative |
+| **Backend** | Django project structure, settings, auth, API, Celery tasks |
+| **Frontend** | Vue 3 structure, Vite config, Pinia state management, auth flow |
+| **DevOps** | CI/CD pipeline, deployment, production Docker builds, security |
+
+To serve the docs locally in the generated project:
+
+```bash
+pip install mkdocs-material
+mkdocs serve
+```
 
 ---
 
