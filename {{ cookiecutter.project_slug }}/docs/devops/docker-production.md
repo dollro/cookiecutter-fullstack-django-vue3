@@ -4,7 +4,7 @@
 
 ```dockerfile
 # STAGE 1: pre-stage (Node.js)
-FROM node:18-bookworm-slim AS pre-stage
+FROM node:24-bookworm-slim AS pre-stage
 # - Install pnpm
 # - Copy package.json and install dependencies
 # - Copy entire project
@@ -12,7 +12,7 @@ FROM node:18-bookworm-slim AS pre-stage
 # - Output: /app/backend_django/static/vue/
 
 # STAGE 2: main-stage (Python)
-FROM python:3.12-slim-bookworm AS main-stage
+FROM python:3.13-slim-trixie AS main-stage
 # - Install system dependencies
 # - Install uv (Astral's package manager)
 # - Install Python dependencies via uv from pyproject.toml

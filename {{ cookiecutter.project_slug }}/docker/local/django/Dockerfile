@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.3
-FROM python:3.12-slim-bookworm
+FROM python:3.13-slim-trixie
 ARG TARGETPLATFORM
 ARG BUILDKIT_INLINE_CACHE
 
@@ -27,7 +27,7 @@ RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-ge
 
 # now install Python modules via uv rather than pip
 # 1. Copy the uv binary
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.10.3 /uv /bin/uv
 
 # 2. Copy pyproject.toml for dependency installation
 COPY pyproject.toml ./

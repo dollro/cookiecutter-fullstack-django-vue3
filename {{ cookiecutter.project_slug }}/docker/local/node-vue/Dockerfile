@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.3
-FROM node:18-bookworm-slim
+FROM node:24-bookworm-slim
 ARG TARGETPLATFORM
 ARG BUILDKIT_INLINE_CACHE
 RUN apt-get update \

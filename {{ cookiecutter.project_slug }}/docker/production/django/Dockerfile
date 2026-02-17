@@ -4,7 +4,7 @@
 ################################################
 # Client builder: build css, js and vue assets
 ################################################
-FROM node:18-bookworm-slim AS pre-stage
+FROM node:24-bookworm-slim AS pre-stage
 ARG TARGETPLATFORM
 ARG APP_VERSION=development
 ARG VITE_APP_VERSION=${APP_VERSION}
@@ -36,7 +36,7 @@ WORKDIR /app
 ###################################
 # Main python build stage
 ###################################
-FROM python:3.12-slim-bookworm AS main-stage
+FROM python:3.13-slim-trixie AS main-stage
 
 ENV PYTHONUNBUFFERED 1
 
@@ -66,7 +66,7 @@ RUN --mount=type=cache,id=apt-cache-$TARGETPLATFORM,target=/var/cache/apt apt-ge
 
 # now install Python modules via uv rather than pip
 # 1. Copy the uv binary
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.10.3 /uv /bin/uv
 
 # 2. Copy pyproject.toml for dependency installation
 COPY pyproject.toml ./

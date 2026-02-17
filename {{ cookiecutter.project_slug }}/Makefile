@@ -1,6 +1,6 @@
 #!make
 SHELL:=/bin/bash
-PYTHON=python3.12
+PYTHON=python3.13
 
 PROJECT_NAME={{cookiecutter.project_slug}}
 LOCAL_VENV_DIR=.venv
@@ -20,13 +20,20 @@ local_venv_install:
 
 local_venv_sw_setup:
 	sudo apt update
-	sudo apt install -y postgresql-17 nodejs direnv ${PYTHON}-venv npm
+	# Add NodeSource repository for Node.js 24 LTS (skip if already configured)
+	@if [ ! -f /etc/apt/keyrings/nodesource.gpg ]; then \
+		sudo mkdir -p /etc/apt/keyrings; \
+		curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg; \
+		echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main" | sudo tee /etc/apt/sources.list.d/nodesource.list; \
+	fi
+	sudo apt update
+	sudo apt install -y postgresql-17 nodejs direnv
 	sudo apt install -y libpq-dev
 	sudo apt install -y redis-server
 	sudo apt install -y libjpeg-dev zlib1g-dev
 	sudo apt install -y git-secret
-	# Install uv package manager
-	curl -LsSf https://astral.sh/uv/install.sh | sh
+	# Install uv package manager (skip if already installed)
+	@command -v uv >/dev/null 2>&1 || curl -LsSf https://astral.sh/uv/install.sh | sh
 
 	mkdir -p ./log
 	chmod u+x ./cert/mkcert-amd64

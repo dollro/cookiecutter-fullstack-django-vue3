@@ -5,3 +5,5 @@ node_modules
 !.env
 !.env.*
 !.pylintrc
+backend_django/media                                                                                   │
+backend_django/static
