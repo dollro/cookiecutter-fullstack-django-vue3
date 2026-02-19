@@ -1,0 +1,35 @@
+# Docker Compose overlay for Playwright E2E tests.
+# Usage:
+#   Local dev:  docker compose -f local.yml -f test-e2e.yml run --rm playwright
+#   CI:         docker compose -f test-ci.yml -f test-e2e.yml run --rm playwright
+
+services:
+  django:
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/')\""]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.58.2
+    ipc: host
+    init: true
+    working_dir: /app/frontend_vue
+    depends_on:
+      django:
+        condition: service_healthy
+    volumes:
+      - .:/app:z
+    environment:
+      - E2E_BASE_URL=http://django:5000
+      - CI=${CI:-false}
+    entrypoint: []
+    command: >
+      bash -c "
+        corepack enable &&
+        corepack prepare pnpm@latest --activate &&
+        pnpm install &&
+        pnpm run test:e2e
+      "

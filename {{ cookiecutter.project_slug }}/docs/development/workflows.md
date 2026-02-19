@@ -43,9 +43,14 @@ pnpm --dir ./frontend_vue run test:e2e
 pnpm --dir ./frontend_vue run test:e2e:ui
 ```
 
-The Docker approach uses a `playwright` service defined in `local.yml` with `profiles: [test]` — it only starts on-demand and connects to Django at `http://django:8000` via the shared Docker network.
+The Playwright service is defined in a **separate `test-e2e.yml` overlay** (not in `local.yml`). This overlay:
 
-E2E tests are configured in `frontend_vue/playwright.config.ts` and test files go in `frontend_vue/e2e/`. Tests run against Chromium, Firefox, and WebKit by default.
+- Adds a **Django healthcheck** so Playwright waits until Django is ready
+- Uses `corepack` for pnpm installation (no global npm install)
+- Connects to Django at `http://django:5000` (correct internal port)
+- Works with both local dev and CI: `-f local.yml -f test-e2e.yml` or `-f test-ci.yml -f test-e2e.yml`
+
+E2E tests are configured in `frontend_vue/playwright.config.ts` and test files go in `frontend_vue/e2e/`. Tests run against Chromium only with sequential execution (`workers: 1`).
 
 ## Code Quality
 
@@ -122,6 +127,7 @@ API_KEY_SERVICE_B=...
 | File | Purpose |
 |------|---------|
 | `local.yml` | Local development stack |
+| `test-e2e.yml` | Playwright E2E test overlay (used with local.yml or test-ci.yml) |
 | `production.yml` | Production build template |
 | `docker-bake-production.hcl` | Buildx multi-service configuration |
 | `docker-bake-staging.hcl` | Staging build configuration |

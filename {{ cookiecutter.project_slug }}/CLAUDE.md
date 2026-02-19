@@ -157,7 +157,7 @@ make docs-serve                   # Serve MkDocs locally
 - **API client:** Axios at `frontend_vue/src/rest/rest.ts`
 - **Build output:** `backend_django/static/vue/` (django-vite integration)
 - **Dev server:** port 3000 with HMR
-- **E2E tests:** Playwright at `frontend_vue/e2e/`, config at `frontend_vue/playwright.config.ts`
+- **E2E tests:** Playwright at `frontend_vue/e2e/`, config at `frontend_vue/playwright.config.ts`, runs via `test-e2e.yml` overlay
 - **E2E base URL:** `E2E_BASE_URL` env var (defaults to `http://localhost:8000`)
 
 ## Code Style
@@ -180,6 +180,7 @@ make docs-serve                   # Serve MkDocs locally
 |------|---------|
 | `Makefile` | All build/run/deploy commands |
 | `local.yml` | Docker Compose dev config |
+| `test-e2e.yml` | Playwright E2E test overlay (used with local.yml or test-ci.yml) |
 | `production.yml` | Docker Compose production config |
 | `pyproject.toml` | Python deps + tool config (single source of truth) |
 | `.gitlab-ci.yml` | CI/CD pipeline (lint, frontend_lint, test, build, release) |

@@ -12,7 +12,6 @@ Services:
   flower:        # Task monitoring UI (port 5555)
   node-vue:      # Vite dev server (port 3000)
   mailhog:       # Email testing (port 8025)
-  playwright:    # E2E test runner (on-demand, profiles: [test])
 ```
 
 ## Service Configuration
@@ -30,11 +29,14 @@ All services share a common network (`<project>_network`) enabling inter-contain
 - Separate `node_modules` volume to avoid conflicts
 - Runs Vite dev server with HMR on port 3000
 
-**Playwright Service (on-demand):**
+**Playwright Service (overlay — `test-e2e.yml`):**
 
-- Uses the official `mcr.microsoft.com/playwright:v1.58.2` image with pre-installed browser binaries
-- Only runs when explicitly invoked via `make local_docker_vue_test_e2e` (uses `profiles: [test]`, so it never starts with `docker compose up`)
-- Connects to the shared network to reach Django at `http://django:8000`
+- Defined in a **separate `test-e2e.yml` overlay**, not in `local.yml` — so it never starts with `docker compose up`
+- Usage: `docker compose -f local.yml -f test-e2e.yml run --rm playwright` (or `make local_docker_vue_test_e2e`)
+- Also works with CI: `docker compose -f test-ci.yml -f test-e2e.yml run --rm playwright`
+- Adds a **Django healthcheck** so Playwright waits until Django is ready before running tests
+- Uses `corepack` to install pnpm (no global npm install needed)
+- Connects to Django at `http://django:5000` (correct internal port)
 - Uses `ipc: host` and `init: true` (recommended by Playwright for Chromium stability)
 
 ## Docker Image Structure
