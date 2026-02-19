@@ -194,6 +194,9 @@ local_docker_vue_lint:			## Lint frontend (Docker)
 local_docker_vue_build:			## Build frontend for production (Docker)
 	docker compose -f local.yml run --rm node-vue pnpm run build
 
+local_docker_vue_test_e2e:		## Run Playwright E2E tests (Docker)
+	docker compose -f local.yml run --rm playwright
+
 local_docker_cleanupall:
 	docker image prune -a
 	docker container prune

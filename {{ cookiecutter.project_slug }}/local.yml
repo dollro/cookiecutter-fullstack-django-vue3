@@ -1,6 +1,7 @@
 volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
+  playwright_node_modules: {}
 
 services:
   django: &django
@@ -109,7 +110,21 @@ services:
       #- PROXY_TARGET=django:8000
       - NODE_ENV=development
 
-
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.58.2
+    ipc: host
+    init: true
+    working_dir: /app
+    volumes:
+      - .:/app:z
+      - playwright_node_modules:/app/frontend_vue/node_modules
+    environment:
+      - E2E_BASE_URL=http://django:8000
+      - CI=${CI:-false}
+    entrypoint: []
+    command: ["bash", "-c", "npm install -g pnpm && pnpm --dir ./frontend_vue install && pnpm --dir ./frontend_vue run test:e2e"]
+    profiles:
+      - test
 
 networks:
   default:
