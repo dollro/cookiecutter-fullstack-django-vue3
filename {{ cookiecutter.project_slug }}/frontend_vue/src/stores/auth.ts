@@ -3,58 +3,75 @@ import { ref, computed } from 'vue'
 import api from '../rest/rest'
 
 export interface User {
-  username: string
+  id: number
   email: string
+  display: string
+  username?: string
+  has_usable_password?: boolean
   [key: string]: unknown
 }
 
 export const useAuthStore = defineStore('auth', () => {
   // State
   const user = ref<User | null>(null)
-  const token = ref<string | null>(null)
+  const sessionToken = ref<string | null>(null)
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
 
   // Getters
-  const isAuthenticated = computed(() => !!token.value)
-  const username = computed(() => user.value?.username || '')
+  const isAuthenticated = computed(() => !!sessionToken.value)
+  const username = computed(() => user.value?.display || user.value?.email || '')
+
+  // Helper: extract session token and user from allauth response
+  function handleAuthResponse(response: {
+    data: {
+      data?: { user?: User }
+      meta?: { session_token?: string; is_authenticated?: boolean }
+    }
+  }) {
+    const respData = response.data
+    if (respData.meta?.session_token) {
+      sessionToken.value = respData.meta.session_token
+      api.setAuthHeader(sessionToken.value)
+    }
+    if (respData.data?.user) {
+      user.value = respData.data.user
+    }
+  }
 
   // Actions
-  async function login(credentials: Record<string, string>) {
+  async function login(credentials: { email: string; password: string }) {
     isLoading.value = true
     error.value = null
-
     try {
       const response = await api.login(credentials)
-      token.value = response.data.key
-      api.setAuthHeader(token.value)
-
-      // Fetch user data after successful login
-      await fetchUser()
-
+      handleAuthResponse(response)
       return response
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { status?: number; data?: { detail?: string; non_field_errors?: string[] } } }
-      error.value = axiosErr.response?.data?.detail || axiosErr.response?.data?.non_field_errors?.[0] || 'Login failed'
+      const axiosErr = err as {
+        response?: { data?: { errors?: Array<{ message?: string; code?: string }> } }
+      }
+      const errors = axiosErr.response?.data?.errors
+      error.value = errors?.[0]?.message || 'Login failed'
       throw err
     } finally {
       isLoading.value = false
     }
   }
 
-  async function register(userData: Record<string, string>) {
+  async function register(userData: { email: string; password: string }) {
     isLoading.value = true
     error.value = null
-
     try {
-      const response = await api.createUser(userData)
+      const response = await api.signup(userData)
+      handleAuthResponse(response)
       return response
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { detail?: string; non_field_errors?: string[]; [key: string]: unknown } } }
-      error.value = axiosErr.response?.data?.detail ||
-                   axiosErr.response?.data?.non_field_errors?.[0] ||
-                   Object.values(axiosErr.response?.data || {}).flat().join(', ') ||
-                   'Registration failed'
+      const axiosErr = err as {
+        response?: { data?: { errors?: Array<{ message?: string; code?: string; param?: string }> } }
+      }
+      const errors = axiosErr.response?.data?.errors
+      error.value = errors?.map(e => e.message).join(', ') || 'Registration failed'
       throw err
     } finally {
       isLoading.value = false
@@ -64,15 +81,13 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     isLoading.value = true
     error.value = null
-
     try {
       await api.logout()
     } catch (err: unknown) {
+      // allauth returns 401 on successful logout (confirms unauthenticated)
       console.warn('Logout API call failed:', err)
-      // Continue with local logout even if API call fails
     } finally {
-      // Clear local state regardless of API response
-      token.value = null
+      sessionToken.value = null
       user.value = null
       api.unsetAuthHeader()
       isLoading.value = false
@@ -80,19 +95,15 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchUser() {
-    if (!token.value) return
-
+    if (!sessionToken.value) return
     isLoading.value = true
     error.value = null
-
     try {
-      const response = await api.getUserData()
-      user.value = response.data
+      const response = await api.getSession()
+      handleAuthResponse(response)
       return response
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { status?: number; data?: { detail?: string } } }
-      error.value = axiosErr.response?.data?.detail || 'Failed to fetch user data'
-      // If token is invalid, clear auth state
+      const axiosErr = err as { response?: { status?: number } }
       if (axiosErr.response?.status === 401) {
         await logout()
       }
@@ -106,29 +117,22 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
   }
 
-  // Initialize auth state from token if it exists
   function initialize() {
-    if (token.value) {
-      api.setAuthHeader(token.value)
+    if (sessionToken.value) {
+      api.setAuthHeader(sessionToken.value)
       fetchUser().catch(() => {
-        // If fetching user fails, clear the stored token
         logout()
       })
     }
   }
 
   return {
-    // State
     user,
-    token,
+    sessionToken,
     isLoading,
     error,
-
-    // Getters
     isAuthenticated,
     username,
-
-    // Actions
     login,
     register,
     logout,
@@ -139,12 +143,10 @@ export const useAuthStore = defineStore('auth', () => {
 }, {
   persist: {
     key: 'auth',
-    paths: ['token', 'user'],
-    // Set auth header immediately after state is restored from localStorage
-    // This ensures the token is available before any component mounts
+    paths: ['sessionToken', 'user'],
     afterRestore: (ctx) => {
-      if (ctx.store.token) {
-        api.setAuthHeader(ctx.store.token)
+      if (ctx.store.sessionToken) {
+        api.setAuthHeader(ctx.store.sessionToken)
       }
     }
   }

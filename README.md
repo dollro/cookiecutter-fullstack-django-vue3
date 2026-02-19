@@ -20,7 +20,7 @@ Originally derived from [cookiecutter-django](https://github.com/cookiecutter/co
 
 - **Docker-First Development** - Fully containerized local development with hot-reload
 - **Modern Frontend** - Vue 3 Composition API with Vite HMR and Tailwind CSS
-- **REST API** - Token-based authentication with dj-rest-auth
+- **REST API** - Session token authentication with django-allauth headless
 - **Async Processing** - Celery workers with Redis broker and Flower monitoring
 - **Production Ready** - Multi-stage Docker builds, Traefik reverse proxy, Gunicorn
 - **CI/CD Pipeline** - GitLab CI with lint, test (backend + frontend), multi-platform build, and release stages
@@ -146,7 +146,6 @@ your_project/
 │   │   ├── api/             # User API endpoints
 │   │   └── models.py        # Custom User model
 │   ├── site_config/         # Site configuration app (SetupFlag model)
-│   ├── requirements/        # DEPRECATED - kept for backwards compatibility
 │   ├── fixtures/            # Django fixtures
 │   ├── manage.py            # Django management script
 │   ├── models.py            # Database models

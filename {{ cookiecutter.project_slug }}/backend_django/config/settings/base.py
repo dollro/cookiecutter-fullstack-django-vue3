@@ -81,17 +81,13 @@ DJANGO_APPS = [
     "django.forms",
 ]
 THIRD_PARTY_APPS = [
-    # "dbsettings",
-    # "crispy_forms",
     "allauth",
     "allauth.account",
+    "allauth.headless",
     "allauth.socialaccount",
     "django_celery_beat",
     "rest_framework",
-    "rest_framework.authtoken",
     "corsheaders",
-    "dj_rest_auth",
-    # "webpack_loader",
     "django_vite",
 ]
 
@@ -275,7 +271,17 @@ SESSION_COOKIE_SECURE = True
 # CORS
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
 # restrict to certain pages that are served by django for which CORS headers are sent
-CORS_URLS_REGEX = r"^/api/.*$"
+CORS_URLS_REGEX = r"^/(api|_allauth)/.*$"
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization",
+    "content-type",
+    "origin",
+    "x-csrftoken",
+    "x-requested-with",
+    "x-session-token",
+]
 
 # cookies will be allowed to be included in cross-site HTTP requests
 # IMPORTANT (tbc): this means CORS_ALLOW_ALL_ORIGINS = True cannot be set, but you have to list the allowed origins in CORS_ALLOWED_ORIGINS
@@ -427,69 +433,30 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 # django-allauth
 # ------------------------------------------------------------------------------
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-# ACCOUNT_SESSION_REMEMBER = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USERNAME_REQUIRED = False
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "none"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "backend_django.users.adapters.AccountAdapter"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 SOCIALACCOUNT_ADAPTER = "backend_django.users.adapters.SocialAccountAdapter"
+
+# django-allauth headless
+# ------------------------------------------------------------------------------
+HEADLESS_ONLY = True
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "/account/verify-email/{key}",
+    "account_reset_password_from_key": "/account/password/reset/{key}",
+    "account_signup": "/account/signup",
+}
 
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        # "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
+        "allauth.headless.contrib.rest_framework.authentication.XSessionTokenAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-}
-
-# dj-rest-auth
-# -------------------------------------------------------------------------------
-# https://dj-rest-auth.readthedocs.io/en/latest/configuration.html
-REST_AUTH = {
-    'LOGIN_SERIALIZER': 'dj_rest_auth.serializers.LoginSerializer',
-    'TOKEN_SERIALIZER': 'dj_rest_auth.serializers.TokenSerializer',
-    'JWT_SERIALIZER': 'dj_rest_auth.serializers.JWTSerializer',
-    'JWT_SERIALIZER_WITH_EXPIRATION': 'dj_rest_auth.serializers.JWTSerializerWithExpiration',
-    'JWT_TOKEN_CLAIMS_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
-    'USER_DETAILS_SERIALIZER': 'dj_rest_auth.serializers.UserDetailsSerializer',
-    'PASSWORD_RESET_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetSerializer',
-    'PASSWORD_RESET_CONFIRM_SERIALIZER': 'dj_rest_auth.serializers.PasswordResetConfirmSerializer',
-    'PASSWORD_CHANGE_SERIALIZER': 'dj_rest_auth.serializers.PasswordChangeSerializer',
-
-    'REGISTER_SERIALIZER': 'dj_rest_auth.registration.serializers.RegisterSerializer',
-
-    'REGISTER_PERMISSION_CLASSES': ('rest_framework.permissions.AllowAny',),
-
-    'TOKEN_MODEL': 'rest_framework.authtoken.models.Token',
-    'TOKEN_CREATOR': 'dj_rest_auth.utils.default_create_token',
-
-    'PASSWORD_RESET_USE_SITES_DOMAIN': False,
-    'OLD_PASSWORD_FIELD_ENABLED': False,
-    'LOGOUT_ON_PASSWORD_CHANGE': False,
-    'SESSION_LOGIN': True,
-    'USE_JWT': False,
-
-    'JWT_AUTH_COOKIE': None,
-    'JWT_AUTH_REFRESH_COOKIE': None,
-    'JWT_AUTH_REFRESH_COOKIE_PATH': '/',
-    'JWT_AUTH_SECURE': False,
-    'JWT_AUTH_HTTPONLY': True,
-    'JWT_AUTH_SAMESITE': 'Lax',
-    'JWT_AUTH_COOKIE_DOMAIN': None,
-    'JWT_AUTH_RETURN_EXPIRATION': False,
-    'JWT_AUTH_COOKIE_USE_CSRF': False,
-    'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
 }
 
 

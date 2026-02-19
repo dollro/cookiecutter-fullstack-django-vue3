@@ -4,30 +4,22 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
 
-# from rest_framework.authtoken.views import obtain_auth_token
-
 
 urlpatterns = [
     path("", include("backend_django.urls")),
-    # Fruit demo
-    # path("fruits/", include("fruit.urls", namespace="fruits")),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
-    # User management
+    # allauth: traditional URLs for OAuth callbacks
     path("accounts/", include("allauth.urls")),
-    # Your stuff: custom urls includes go he
+    # allauth headless: REST API for auth
+    path("_allauth/", include("allauth.headless.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # API URLS
 api_base = "api/v1/"
 urlpatterns += [
-    # API base url
-    path(api_base, include("dj_rest_auth.urls")),
-    path(api_base + "registration/", include("dj_rest_auth.registration.urls")),
     path(api_base, include("backend_django.config.api_router")),
     path(api_base, include("backend_django.api.urls")),
-    # DRF auth token
-    # path("auth-token/", obtain_auth_token),
 ]
 
 if settings.DEBUG:

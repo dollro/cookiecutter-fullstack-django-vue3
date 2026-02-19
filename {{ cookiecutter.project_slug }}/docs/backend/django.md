@@ -37,10 +37,6 @@
 │   │   ├── api_router.py     # DRF router configuration
 │   │   ├── celery_app.py     # Celery configuration
 │   │   └── wsgi.py           # WSGI entry point
-│   ├── requirements/         # DEPRECATED - kept for backwards compatibility
-│   │   ├── base.txt
-│   │   ├── local.txt
-│   │   └── production.txt
 │   ├── fixtures/             # Database fixtures
 │   └── manage.py             # Django management script
 ├── pyproject.toml              # Python dependencies & tool config (single source of truth)
@@ -65,15 +61,16 @@ Environment determined by `DJANGO_SETTINGS_MODULE`:
 
 ## Authentication System
 
-- **dj-rest-auth** + **django-allauth** for authentication
-- Token-based authentication (DRF TokenAuthentication)
+- **django-allauth headless** for authentication (native REST API)
+- Session token authentication via `X-Session-Token` header
 - Email as primary identifier (no username required)
+- `HEADLESS_ONLY = True` — no traditional HTML auth views
 
 ```python
 # REST Framework configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
+        "allauth.headless.contrib.rest_framework.authentication.XSessionTokenAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
@@ -90,10 +87,11 @@ REST_FRAMEWORK = {
 ## API Endpoint Patterns
 
 ```
-Authentication:
-POST   /api/v1/auth/login/              # Login
-POST   /api/v1/auth/logout/             # Logout
-POST   /api/v1/auth/registration/       # Register
+Authentication (allauth headless):
+POST   /_allauth/app/v1/auth/login      # Login
+DELETE /_allauth/app/v1/auth/session     # Logout
+POST   /_allauth/app/v1/auth/signup     # Register
+GET    /_allauth/app/v1/auth/session     # Get current session
 
 Feature Endpoints (example patterns):
 POST   /api/v1/<feature>/create/        # Create resource
@@ -114,17 +112,15 @@ GET    /api/v1/version-info/            # App version & environment
 backend_django/config/urls.py (Root)
 ├── ""                    → backend_django.urls (frontend views)
 ├── "admin/"              → Django Admin
-├── "accounts/"           → allauth.urls (social auth)
+├── "accounts/"           → allauth.urls (OAuth callbacks)
+├── "_allauth/"           → allauth.headless.urls (auth API)
+│   └── app/v1/auth/
+│       ├── login         (POST)
+│       ├── signup        (POST)
+│       ├── session       (GET, DELETE)
+│       └── password/     (request, reset, change)
 │
 └── API URLs (api/v1/):
-    ├── ""                → dj_rest_auth.urls
-    │   ├── login/
-    │   ├── logout/
-    │   ├── user/
-    │   └── password/
-    │
-    ├── "registration/"   → dj_rest_auth.registration.urls
-    │
     ├── ""                → backend_django.config.api_router (DRF routers)
     │
     └── ""                → backend_django.api.urls

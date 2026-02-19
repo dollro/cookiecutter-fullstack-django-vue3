@@ -134,7 +134,7 @@ make docs-serve                   # Serve MkDocs locally
 
 - **Settings:** split across `backend_django/config/settings/{base,local,production,test}.py`
 - **API routes:** registered in `backend_django/config/api_router.py` and `backend_django/api/urls.py`, base URL `/api/v1/`
-- **Auth:** django-allauth + dj-rest-auth, custom User model at `backend_django/users/`
+- **Auth:** django-allauth headless (`X-Session-Token`), custom User model at `backend_django/users/`
 - **Celery tasks:** `backend_django/tasks.py`, config at `backend_django/config/celery_app.py`
 - **Tests:** pytest + factory_boy, fixtures auto-loaded from `backend_django/fixtures/`
 - **Test settings:** `DJANGO_SETTINGS_MODULE = backend_django.config.settings.test`
