@@ -30,18 +30,20 @@ docker compose -f local.yml run --rm django pytest --cov=backend_django
 
 ### Frontend E2E Tests (Playwright)
 
-Playwright runs from the host (requires local Node/pnpm) because it needs browser binaries.
+E2E tests run in a dedicated Docker container using the official Playwright image (`mcr.microsoft.com/playwright:v1.58.2`), which ships with pre-installed browser binaries. No local browser install needed.
 
 ```bash
-# Run all E2E tests
+# Run all E2E tests via Docker (recommended)
+make local_docker_vue_test_e2e
+
+# Or run from host (requires local Node/pnpm + playwright browsers)
 pnpm --dir ./frontend_vue run test:e2e
 
-# Run with interactive UI
+# Run with interactive UI (host only)
 pnpm --dir ./frontend_vue run test:e2e:ui
-
-# Run against a custom base URL
-E2E_BASE_URL=http://localhost:8000 pnpm --dir ./frontend_vue run test:e2e
 ```
+
+The Docker approach uses a `playwright` service defined in `local.yml` with `profiles: [test]` — it only starts on-demand and connects to Django at `http://django:8000` via the shared Docker network.
 
 E2E tests are configured in `frontend_vue/playwright.config.ts` and test files go in `frontend_vue/e2e/`. Tests run against Chromium, Firefox, and WebKit by default.
 
@@ -157,6 +159,7 @@ docker compose -f local.yml logs django # Django logs only
 pre-commit run --all-files                                          # Lint/format (host)
 docker compose -f local.yml run --rm django pytest                  # Backend tests
 docker compose -f local.yml exec node-vue pnpm run type-check      # TypeScript check
+make local_docker_vue_test_e2e                                      # E2E tests (Playwright)
 ```
 
 ### Debugging

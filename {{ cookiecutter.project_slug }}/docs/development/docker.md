@@ -12,6 +12,7 @@ Services:
   flower:        # Task monitoring UI (port 5555)
   node-vue:      # Vite dev server (port 3000)
   mailhog:       # Email testing (port 8025)
+  playwright:    # E2E test runner (on-demand, profiles: [test])
 ```
 
 ## Service Configuration
@@ -28,6 +29,13 @@ All services share a common network (`<project>_network`) enabling inter-contain
 
 - Separate `node_modules` volume to avoid conflicts
 - Runs Vite dev server with HMR on port 3000
+
+**Playwright Service (on-demand):**
+
+- Uses the official `mcr.microsoft.com/playwright:v1.58.2` image with pre-installed browser binaries
+- Only runs when explicitly invoked via `make local_docker_vue_test_e2e` (uses `profiles: [test]`, so it never starts with `docker compose up`)
+- Connects to the shared network to reach Django at `http://django:8000`
+- Uses `ipc: host` and `init: true` (recommended by Playwright for Chromium stability)
 
 ## Docker Image Structure
 

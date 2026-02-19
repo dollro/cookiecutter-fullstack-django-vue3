@@ -77,6 +77,7 @@ make local_docker_preseed         # Load fixtures
 make local_docker_vue_install     # Install / update frontend deps
 make local_docker_vue_lint        # Run ESLint
 make local_docker_vue_build       # Production build
+make local_docker_vue_test_e2e    # Run Playwright E2E tests
 ```
 
 > **All commands (Python and Node.js) must run inside Docker.** The local venv targets in the Makefile exist as a fallback but Docker is the canonical development environment.
@@ -103,8 +104,8 @@ docker compose -f local.yml exec node-vue pnpm run type-check
 # Frontend lint (check only, no fix)
 docker compose -f local.yml exec node-vue pnpm run lint --no-fix
 
-# Playwright E2E tests (run from host — requires local Node/pnpm)
-pnpm --dir ./frontend_vue run test:e2e
+# Playwright E2E tests (via dedicated Docker container)
+make local_docker_vue_test_e2e
 
 # Pre-commit hooks (run from host — requires pre-commit installed)
 pre-commit run --all-files
