@@ -5,23 +5,22 @@
 ```
 frontend_vue/
 ├── src/
-│   ├── main.js               # Application entry point
+│   ├── main.ts               # Application entry point
 │   ├── Main.vue              # Root component
-│   ├── i18n.js               # i18n configuration
+│   ├── i18n.ts               # i18n configuration
 │   ├── components/           # Vue components
 │   │   ├── Hello.vue         # Example component
 │   │   ├── HelloI18n.vue     # i18n example component
 │   │   └── LoginRestAuth.vue # Authentication form
 │   ├── rest/
-│   │   └── rest.js           # Centralized API module (MANDATORY)
+│   │   └── rest.ts           # Centralized API module (MANDATORY)
 │   ├── stores/               # Pinia state management
-│   │   ├── auth.js           # Authentication store
-│   │   └── store_app.js      # Application store
+│   │   └── auth.ts           # Authentication store
 │   ├── utils/
-│   │   └── create_app_utils.js # App factory utilities
+│   │   └── create_app_utils.ts # App factory utilities
 │   ├── assets/               # Static assets (css, scss, img)
 │   └── locales/              # i18n translation files
-├── vite.config.js            # Vite configuration
+├── vite.config.ts            # Vite configuration
 ├── playwright.config.ts      # Playwright E2E test configuration
 ├── package.json              # Dependencies
 ├── .env.development          # Development environment
@@ -31,7 +30,7 @@ frontend_vue/
 
 ## Build Configuration
 
-**Vite Configuration (`vite.config.js`):**
+**Vite Configuration (`vite.config.ts`):**
 
 ```javascript
 export default defineConfig({
@@ -62,11 +61,11 @@ export default defineConfig({
 
 ### 1. API Module (MANDATORY)
 
-All API calls must go through `src/rest/rest.js`:
+All API calls must go through `src/rest/rest.ts`:
 
-```javascript
+```typescript
 // CORRECT
-import api from '../rest/rest.js';
+import api from '../rest/rest';
 const response = await api.fetchData(params);
 
 // WRONG - Never import axios directly
@@ -93,7 +92,7 @@ Use Vue 3 Composition API with `<script setup>`:
 ```vue
 <script setup>
 import { ref, onMounted } from 'vue';
-import api from '../rest/rest.js';
+import api from '../rest/rest';
 
 const loading = ref(false);
 const data = ref(null);
@@ -122,26 +121,25 @@ onMounted(fetchData);
 
 ```
 frontend_vue/src/
-├── main.js                    # Entry point - multi-mount pattern
+├── main.ts                    # Entry point - multi-mount pattern
 ├── Main.vue                   # Root component (minimal)
-├── i18n.js                    # Internationalization setup
+├── i18n.ts                    # Internationalization setup
 ├── components/
 │   ├── Hello.vue              # Example component with assets
 │   ├── HelloI18n.vue          # i18n demonstration component
 │   └── LoginRestAuth.vue      # Full authentication form (login/register)
 ├── stores/
-│   ├── auth.js                # Authentication state (Pinia)
-│   └── store_app.js           # Application state
+│   └── auth.ts                # Authentication state (Pinia)
 └── utils/
-    └── create_app_utils.js    # App factory for multi-mount
+    └── create_app_utils.ts    # App factory for multi-mount
 ```
 
 ### Multi-Mount Pattern
 
 Unlike typical SPAs, this architecture mounts multiple Vue apps into different DOM elements:
 
-```javascript
-// main.js - Multi-mount strategy for Django integration
+```typescript
+// main.ts - Multi-mount strategy for Django integration
 createAppInEl(Main, "#vue-main");
 createAppInEl(Hello, "#vue-hello");
 createAppInEl(LoginRestAuth, "#vue-login-rest_auth");
@@ -149,8 +147,8 @@ createAppInEl(LoginRestAuth, "#vue-login-rest_auth");
 
 **Factory Function:**
 
-```javascript
-// create_app_utils.js
+```typescript
+// create_app_utils.ts
 export const createAppInEl = (options, selector) => {
   const mountTarget = document.querySelector(selector);
   if (!mountTarget) return null;  // Safe skip if element missing
@@ -175,9 +173,9 @@ export const createAppInEl = (options, selector) => {
 2. **Event Bus** - Custom events for cross-component communication
 3. **Props/Emits** - Standard Vue parent-child communication
 
-```javascript
+```typescript
 // Example: Using auth store across components
-import { useAuthStore } from '../stores/auth.js'
+import { useAuthStore } from '../stores/auth'
 
 const authStore = useAuthStore()
 

@@ -157,7 +157,7 @@ your_project/
 │   ├── src/
 │   │   ├── components/      # Vue components
 │   │   ├── stores/          # Pinia state management
-│   │   └── rest/rest.js     # Centralized API module
+│   │   └── rest/rest.ts     # Centralized API module
 │   ├── vite.config.js       # Vite configuration
 │   ├── playwright.config.ts # Playwright E2E test configuration
 │   ├── .prettierrc          # Prettier configuration
