@@ -71,6 +71,16 @@ make local_docker_createsuperuser # Create admin user
 make local_docker_preseed         # Load fixtures
 ```
 
+### Frontend commands (Docker)
+
+```bash
+make local_docker_vue_install     # Install / update frontend deps
+make local_docker_vue_lint        # Run ESLint
+make local_docker_vue_build       # Production build
+```
+
+> **All commands (Python and Node.js) must run inside Docker.** The local venv targets in the Makefile exist as a fallback but Docker is the canonical development environment.
+
 ### Local venv workflow (alternative)
 
 ```bash

@@ -185,6 +185,15 @@ local_docker_createsuperuser:
 local_docker_passwordhash:
 	docker compose -f local.yml run --rm django python backend_django/manage.py passwordhash
 
+local_docker_vue_install:		## Install frontend deps (Docker)
+	docker compose -f local.yml run --rm node-vue pnpm install
+
+local_docker_vue_lint:			## Lint frontend (Docker)
+	docker compose -f local.yml run --rm node-vue pnpm run lint
+
+local_docker_vue_build:			## Build frontend for production (Docker)
+	docker compose -f local.yml run --rm node-vue pnpm run build
+
 local_docker_cleanupall:
 	docker image prune -a
 	docker container prune
